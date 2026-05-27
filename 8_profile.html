@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveloop – Profile</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f4f0;display:flex;min-height:100vh}
+
+  /* ── Sidebar ── */
+  .sidebar{width:220px;background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100}
+  .logo{padding:20px 16px 16px;border-bottom:0.5px solid #e0e0e0}
+  .logo-text{font-size:17px;font-weight:600;color:#1a1a1a}
+  .logo-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .nav{padding:12px 8px;flex:1}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#666;text-decoration:none;margin-bottom:2px;transition:background 0.15s;font-weight:500}
+  .nav a:hover{background:#f5f4f0;color:#1a1a1a}
+  .nav a.active{background:#EEEDFE;color:#534AB7}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .user-area{padding:12px;border-top:0.5px solid #e0e0e0}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#EEEDFE;cursor:pointer;transition:background 0.15s;text-decoration:none}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#CECBF6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3489;flex-shrink:0}
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:#fff;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:18px}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90}
+
+  /* ── Main ── */
+  .main{margin-left:220px;flex:1;padding:28px;overflow-y:auto;max-width:760px}
+  .page-title{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+  .page-sub{font-size:13px;color:#888;margin-bottom:28px}
+
+  /* ── Profile header ── */
+  .profile-header{background:#fff;border:0.5px solid #e0e0e0;border-radius:16px;padding:32px;text-align:center;margin-bottom:20px;position:relative}
+  .profile-avatar{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#534AB7,#7B6FDE);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;margin:0 auto 14px;box-shadow:0 4px 20px rgba(83,74,183,.2)}
+  .profile-name{font-size:20px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+  .profile-email{font-size:13px;color:#888;margin-bottom:4px}
+  .profile-plan{display:inline-block;font-size:11px;padding:3px 10px;border-radius:20px;background:#EEEDFE;color:#534AB7;font-weight:500;margin-top:6px}
+
+  /* ── Stats row ── */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+  .stat-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:18px;text-align:center}
+  .stat-value{font-size:22px;font-weight:700;color:#1a1a1a}
+  .stat-label{font-size:11px;color:#888;margin-top:4px}
+  .stat-icon{font-size:20px;margin-bottom:6px}
+
+  /* ── Edit profile card ── */
+  .edit-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:16px;padding:24px;margin-bottom:20px}
+  .edit-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:12px;color:#666;margin-bottom:6px;font-weight:500}
+  .form-group input{width:100%;padding:10px 12px;border:0.5px solid #d0d0d0;border-radius:8px;font-size:14px;color:#1a1a1a;background:#fff;outline:none;font-family:inherit;transition:border-color .15s}
+  .form-group input:focus{border-color:#534AB7}
+  .form-group input:read-only{background:#f9f8f6;color:#888}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+  .btn-row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid #d0d0d0;background:#fff;color:#666;transition:all .15s}
+  .btn:hover{background:#f5f4f0}
+  .btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+  .btn-primary:hover{background:#3C3489}
+  .btn-danger{color:#c0392b;border-color:#e0b4b4}
+  .btn-danger:hover{background:#fdf0f0;color:#a93226}
+  .btn-logout{width:100%;padding:11px;background:#fff;color:#c0392b;border:0.5px solid #e0b4b4;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-logout:hover{background:#c0392b;color:#fff;border-color:#c0392b}
+
+  .success-msg{background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:10px;padding:14px;text-align:center;font-size:14px;color:#085041;display:none;margin-top:12px}
+
+  /* ── Danger zone ── */
+  .danger-card{background:#fff;border:0.5px solid #e0b4b4;border-radius:16px;padding:24px}
+  .danger-title{font-size:14px;font-weight:600;color:#c0392b;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .danger-desc{font-size:13px;color:#888;margin-bottom:16px}
+
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .hamburger{display:block}
+    .overlay.show{display:block}
+    .main{margin-left:0;padding:20px;padding-top:56px;max-width:100%}
+    .stats-row{grid-template-columns:1fr}
+    .form-row{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-text">✈ Traveloop</div>
+    <div class="logo-sub">Travel planning made easy</div>
+  </div>
+  <nav class="nav">
+    <a href="2_dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="4_my_trips.html"><span class="nav-icon">🗺️</span> My trips</a>
+    <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+    <a href="5_itinerary_builder.html"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+    <a href="6_budget.html"><span class="nav-icon">📊</span> Budget</a>
+    <a href="7_share_trip.html"><span class="nav-icon">🔗</span> Share trip</a>
+  </nav>
+  <div class="user-area">
+    <a href="8_profile.html" class="user-pill" id="user-pill">
+      <div class="avatar" id="sidebar-avatar">AJ</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="sidebar-name">Arjun Joshi</div>
+        <div style="font-size:11px;color:#aaa">Free plan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-title">My Profile 👤</div>
+  <div class="page-sub">Manage your account settings and preferences</div>
+
+  <!-- Profile header card -->
+  <div class="profile-header">
+    <div class="profile-avatar" id="profile-avatar">AJ</div>
+    <div class="profile-name" id="profile-name">Arjun Joshi</div>
+    <div class="profile-email" id="profile-email">arjun@example.com</div>
+    <div class="profile-plan">✨ Free plan</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon">🗺️</div>
+      <div class="stat-value" id="stat-trips">0</div>
+      <div class="stat-label">Total trips</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏙️</div>
+      <div class="stat-value" id="stat-cities">0</div>
+      <div class="stat-label">Cities visited</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-value" id="stat-budget">₹0</div>
+      <div class="stat-label">Budget tracked</div>
+    </div>
+  </div>
+
+  <!-- Edit profile card -->
+  <div class="edit-card">
+    <div class="edit-title">✏️ Edit Profile</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>First name</label>
+        <input type="text" id="inp-fname" placeholder="Arjun">
+      </div>
+      <div class="form-group">
+        <label>Last name</label>
+        <input type="text" id="inp-lname" placeholder="Joshi">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="text" id="inp-email" readonly>
+    </div>
+    <div class="form-group">
+      <label>Phone number (optional)</label>
+      <input type="text" id="inp-phone" placeholder="+91 98765 43210">
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="cancelEdit()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveProfile()">💾 Save changes</button>
+    </div>
+    <div class="success-msg" id="save-success">Profile updated successfully! ✓</div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="danger-card">
+    <div class="danger-title">⚠️ Account Actions</div>
+    <div class="danger-desc">Log out of your account or clear your data</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-logout" onclick="handleLogout()" style="flex:1;min-width:200px">🚪 Log out</button>
+      <button class="btn btn-danger" onclick="clearData()" style="flex:1;min-width:200px">🗑️ Clear all data</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Protected Route ── */
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Load user data ── */
+  const email = localStorage.getItem("loggedInUser") || "";
+  const userData = JSON.parse(localStorage.getItem("userData") || '{}');
+  const fullName = userData.name || "Traveler";
+  const nameParts = fullName.split(" ");
+  const initials = nameParts.map(w => w[0]).join("").toUpperCase().slice(0, 2);
+
+  /* ── Populate profile display ── */
+  document.getElementById("profile-avatar").textContent = initials;
+  document.getElementById("profile-name").textContent = fullName;
+  document.getElementById("profile-email").textContent = email;
+  document.getElementById("sidebar-avatar").textContent = initials;
+  document.getElementById("sidebar-name").textContent = fullName;
+
+  /* ── Populate edit form ── */
+  document.getElementById("inp-fname").value = nameParts[0] || "";
+  document.getElementById("inp-lname").value = nameParts.slice(1).join(" ") || "";
+  document.getElementById("inp-email").value = email;
+  document.getElementById("inp-phone").value = userData.phone || "";
+
+  /* ── Populate stats ── */
+  const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+  const budgetData = JSON.parse(localStorage.getItem("budgetData") || "{}");
+  document.getElementById("stat-trips").textContent = trips.length;
+  const totalCities = trips.reduce((acc, t) => acc + (t.cities ? t.cities.length : 0), 0);
+  document.getElementById("stat-cities").textContent = totalCities;
+  const totalBudget = budgetData.totalBudget || 0;
+  document.getElementById("stat-budget").textContent = "₹" + totalBudget.toLocaleString("en-IN");
+
+  /* ── Save profile ── */
+  function saveProfile() {
+    const fname = document.getElementById("inp-fname").value.trim();
+    const lname = document.getElementById("inp-lname").value.trim();
+    const phone = document.getElementById("inp-phone").value.trim();
+    if (!fname) { alert("First name is required"); return; }
+
+    const newName = fname + (lname ? " " + lname : "");
+    const updated = { name: newName, email: email, phone: phone };
+    localStorage.setItem("userData", JSON.stringify(updated));
+
+    /* Update display */
+    const newInitials = newName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    document.getElementById("profile-avatar").textContent = newInitials;
+    document.getElementById("profile-name").textContent = newName;
+    document.getElementById("sidebar-avatar").textContent = newInitials;
+    document.getElementById("sidebar-name").textContent = newName;
+
+    document.getElementById("save-success").style.display = "block";
+    setTimeout(() => { document.getElementById("save-success").style.display = "none"; }, 2500);
+  }
+
+  /* ── Cancel edit ── */
+  function cancelEdit() {
+    document.getElementById("inp-fname").value = nameParts[0] || "";
+    document.getElementById("inp-lname").value = nameParts.slice(1).join(" ") || "";
+    document.getElementById("inp-phone").value = userData.phone || "";
+  }
+
+  /* ── Logout ── */
+  function handleLogout() {
+    if (!confirm("Are you sure you want to log out?")) return;
+    localStorage.removeItem("loggedInUser");
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Clear all data ── */
+  function clearData() {
+    if (!confirm("This will delete all trips, budget data, and your profile. Are you sure?")) return;
+    if (!confirm("This action cannot be undone. Really delete everything?")) return;
+    localStorage.clear();
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  }
+</script>
+</body>
+</html>

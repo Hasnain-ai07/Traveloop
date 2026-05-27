@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveloop – Itinerary Builder</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f4f0;display:flex;min-height:100vh}
+
+  /* ── Sidebar ── */
+  .sidebar{width:220px;background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100}
+  .logo{padding:20px 16px 16px;border-bottom:0.5px solid #e0e0e0}
+  .logo-text{font-size:17px;font-weight:600;color:#1a1a1a}
+  .logo-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .nav{padding:12px 8px;flex:1}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#666;text-decoration:none;margin-bottom:2px;transition:background 0.15s;font-weight:500}
+  .nav a:hover{background:#f5f4f0;color:#1a1a1a}
+  .nav a.active{background:#EEEDFE;color:#534AB7}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .user-area{padding:12px;border-top:0.5px solid #e0e0e0}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f5f4f0;cursor:pointer;transition:background 0.15s;text-decoration:none}
+  .user-pill:hover{background:#EEEDFE}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#CECBF6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3489;flex-shrink:0}
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:#fff;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:18px}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90}
+
+  /* ── Main ── */
+  .main{margin-left:220px;flex:1;padding:28px;overflow-y:auto;padding-bottom:100px}
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+  .page-title{font-size:20px;font-weight:600;color:#1a1a1a}
+  .page-sub{font-size:13px;color:#888;margin-top:4px}
+
+  /* ── Trip selector ── */
+  .trip-selector{margin-bottom:24px}
+  .trip-selector select{width:100%;max-width:360px;padding:10px 12px;border:0.5px solid #d0d0d0;border-radius:8px;font-size:14px;color:#1a1a1a;background:#fff;outline:none;font-family:inherit}
+  .trip-selector select:focus{border-color:#534AB7}
+
+  /* ── Add city bar ── */
+  .add-bar{display:flex;gap:10px;margin-bottom:24px}
+  .add-bar input{flex:1;max-width:320px;padding:10px 12px;border:0.5px solid #d0d0d0;border-radius:8px;font-size:14px;color:#1a1a1a;background:#fff;outline:none;font-family:inherit}
+  .add-bar input:focus{border-color:#534AB7}
+  .btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid #d0d0d0;background:#fff;color:#666;transition:all 0.15s}
+  .btn:hover{background:#f5f4f0}
+  .btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+  .btn-primary:hover{background:#3C3489}
+  .btn-danger{background:#fff;color:#c0392b;border-color:#e0b4b4}
+  .btn-danger:hover{background:#fdf0f0}
+
+  /* ── Timeline ── */
+  .timeline{position:relative;padding-left:28px}
+  .timeline::before{content:'';position:absolute;left:11px;top:0;bottom:0;width:2px;background:#EEEDFE}
+  .city-block{position:relative;margin-bottom:28px}
+  .city-dot{position:absolute;left:-28px;top:4px;width:22px;height:22px;border-radius:50%;background:#534AB7;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:600;z-index:1}
+  .city-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:18px;transition:border-color .15s}
+  .city-card:hover{border-color:#CECBF6}
+  .city-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .city-name{font-size:15px;font-weight:600;color:#1a1a1a;display:flex;align-items:center;gap:8px}
+  .city-name .emoji{font-size:18px}
+  .city-total{font-size:12px;font-weight:600;color:#534AB7;background:#EEEDFE;padding:3px 10px;border-radius:20px}
+
+  /* ── Activities ── */
+  .section-label{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:4px}
+  .activities-list{list-style:none;margin-bottom:14px}
+  .activity-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:13px;color:#1a1a1a;transition:background 0.1s;margin-bottom:2px}
+  .activity-bullet{width:6px;height:6px;border-radius:50%;background:#CECBF6;flex-shrink:0}
+  .activity-text{flex:1}
+
+  /* ── Expenses section in city card ── */
+  .expenses-divider{border:none;border-top:0.5px solid #f0efef;margin:16px 0 12px}
+  .expense-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:13px;margin-bottom:3px;transition:background .1s}
+  .expense-item:hover{background:#f9f8f6}
+  .expense-cat-badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;flex-shrink:0}
+  .expense-cat-hotel{background:#EEEDFE;color:#534AB7}
+  .expense-cat-transport{background:#E1F5F9;color:#2E86AB}
+  .expense-cat-food{background:#E1F5EE;color:#0F6E56}
+  .expense-cat-activities{background:#FFF4E0;color:#F18F01}
+  .expense-cat-misc{background:#FAEEDA;color:#854F0B}
+  .expense-name{flex:1;color:#1a1a1a}
+  .expense-cost{font-weight:600;color:#1a1a1a;font-size:13px}
+
+  /* ── Save bar ── */
+  .save-bar{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:20px;border-top:0.5px solid #e0e0e0}
+  .success-msg{background:#E1F5EE;border:0.5px solid #9FE1CB;border-radius:10px;padding:14px;text-align:center;font-size:14px;color:#085041;display:none;margin-top:12px}
+
+  /* ── Empty state ── */
+  .empty-itinerary{text-align:center;padding:48px 20px;background:#fff;border:0.5px solid #e0e0e0;border-radius:14px}
+  .empty-itinerary .icon{font-size:40px;margin-bottom:10px}
+  .empty-itinerary .title{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+  .empty-itinerary .sub{font-size:13px;color:#888}
+
+  /* ── Floating Budget Button ── */
+  .floating-budget{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#534AB7,#7B6FDE);color:#fff;border-radius:50px;padding:12px 22px 12px 16px;display:none;align-items:center;gap:12px;cursor:pointer;box-shadow:0 4px 24px rgba(83,74,183,.3);transition:all .3s;z-index:500;text-decoration:none;border:none;font-family:inherit}
+  .floating-budget:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(83,74,183,.4)}
+  .floating-budget.show{display:flex}
+  .fb-icon{font-size:20px;animation:fbPulse 2s ease-in-out infinite}
+  @keyframes fbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  .fb-info{text-align:left}
+  .fb-label{font-size:10px;opacity:.85;font-weight:500;letter-spacing:.03em}
+  .fb-amount{font-size:16px;font-weight:700}
+  .fb-arrow{font-size:16px;opacity:.7;margin-left:4px}
+  .fb-items{font-size:10px;opacity:.75;margin-top:1px}
+
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .hamburger{display:block}
+    .overlay.show{display:block}
+    .main{margin-left:0;padding:20px;padding-top:56px;padding-bottom:100px}
+    .add-bar{flex-direction:column}
+    .add-bar input{max-width:100%}
+    .floating-budget{bottom:16px;right:16px;left:16px;border-radius:16px;justify-content:center}
+  }
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-text">✈ Traveloop</div>
+    <div class="logo-sub">Travel planning made easy</div>
+  </div>
+  <nav class="nav">
+    <a href="2_dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="4_my_trips.html"><span class="nav-icon">🗺️</span> My trips</a>
+    <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+    <a href="5_itinerary_builder.html" class="active"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+    <a href="6_budget.html"><span class="nav-icon">📊</span> Budget</a>
+    <a href="7_share_trip.html"><span class="nav-icon">🔗</span> Share trip</a>
+  </nav>
+  <div class="user-area">
+    <a href="8_profile.html" class="user-pill" id="user-pill">
+      <div class="avatar" id="user-avatar">AJ</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="user-name">Arjun Joshi</div>
+        <div style="font-size:11px;color:#aaa">Free plan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Itinerary Builder 🏙️</div>
+      <div class="page-sub">Plan your day-by-day travel itinerary and track expenses</div>
+    </div>
+  </div>
+
+  <!-- Trip selector -->
+  <div class="trip-selector">
+    <label style="display:block;font-size:12px;color:#666;margin-bottom:6px;font-weight:500">Select a trip</label>
+    <select id="trip-select" onchange="loadTrip()">
+      <option value="">— Choose a trip —</option>
+    </select>
+  </div>
+
+  <!-- Add city bar -->
+  <div class="add-bar" id="add-city-bar" style="display:none">
+    <input type="text" id="new-city" placeholder="Enter city name (e.g. Paris)" onkeydown="if(event.key==='Enter')addCity()">
+    <button class="btn btn-primary" onclick="addCity()">+ Add city</button>
+  </div>
+
+  <!-- Timeline -->
+  <div id="timeline-container"></div>
+
+  <!-- Save bar -->
+  <div class="save-bar" id="save-bar" style="display:none">
+    <button class="btn btn-primary" onclick="saveItinerary()">💾 Save itinerary</button>
+  </div>
+
+  <div class="success-msg" id="save-success">Itinerary saved successfully! ✓</div>
+</div>
+
+<!-- Floating View Budget Button -->
+<button class="floating-budget" id="floating-budget" onclick="goToBudget()">
+  <div class="fb-icon">💰</div>
+  <div class="fb-info">
+    <div class="fb-label">VIEW BUDGET</div>
+    <div class="fb-amount" id="fb-amount">₹0</div>
+    <div class="fb-items" id="fb-items">0 expenses</div>
+  </div>
+  <div class="fb-arrow">→</div>
+</button>
+
+<script>
+  /* ── Protected Route ── */
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Load user info ── */
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  if (userData.name) {
+    document.getElementById("user-name").textContent = userData.name;
+    document.getElementById("user-avatar").textContent = userData.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  }
+
+  let selectedTripId = null;
+
+  /* ── Category config ── */
+  const catConfig = {
+    hotel:      { label: "Hotel",     emoji: "🏨", class: "expense-cat-hotel" },
+    transport:  { label: "Transport", emoji: "🚗", class: "expense-cat-transport" },
+    food:       { label: "Food",      emoji: "🍽️", class: "expense-cat-food" },
+    activities: { label: "Activity",  emoji: "🎯", class: "expense-cat-activities" },
+    misc:       { label: "Misc",      emoji: "📦", class: "expense-cat-misc" }
+  };
+
+  /* ── Default City Budget Data ── */
+  const defaultCityData = {
+    "paris": {
+      activities: ["Eiffel Tower visit","Louvre Museum","Seine river cruise","Montmartre walk"],
+      expenses: [
+        { name: "Paris Hotel Stay", category: "hotel", cost: 12000 },
+        { name: "Paris Local Transport", category: "transport", cost: 5000 },
+        { name: "Paris Dining & Food", category: "food", cost: 4000 },
+        { name: "Paris City Activities", category: "activities", cost: 6000 }
+      ]
+    },
+    "rome": {
+      activities: ["Colosseum tour","Vatican City","Trevi Fountain","Pasta cooking class"],
+      expenses: [
+        { name: "Rome Hotel Stay", category: "hotel", cost: 10000 },
+        { name: "Rome Local Transport", category: "transport", cost: 4500 },
+        { name: "Rome Dining & Food", category: "food", cost: 3500 },
+        { name: "Rome City Activities", category: "activities", cost: 5000 }
+      ]
+    },
+    "barcelona": {
+      activities: ["Sagrada Familia","Park Güell","La Rambla stroll","Beach day"],
+      expenses: [
+        { name: "Barcelona Hotel Stay", category: "hotel", cost: 11000 },
+        { name: "Barcelona Local Transport", category: "transport", cost: 4000 },
+        { name: "Barcelona Dining & Food", category: "food", cost: 3000 },
+        { name: "Barcelona City Activities", category: "activities", cost: 4500 }
+      ]
+    },
+    "amsterdam": {
+      activities: ["Canal cruise","Anne Frank House","Van Gogh Museum","Vondelpark"],
+      expenses: [
+        { name: "Amsterdam Hotel Stay", category: "hotel", cost: 13000 },
+        { name: "Amsterdam Local Transport", category: "transport", cost: 5500 },
+        { name: "Amsterdam Dining & Food", category: "food", cost: 4500 },
+        { name: "Amsterdam City Activities", category: "activities", cost: 6500 }
+      ]
+    }
+  };
+
+  /* ── Fallback City Costs ── */
+  function getFallbackCityData(cityName) {
+    return {
+      activities: ["Explore local sights", "Try local cuisine"],
+      expenses: [
+        { name: cityName + " Hotel Stay", category: "hotel", cost: 9000 },
+        { name: cityName + " Local Transport", category: "transport", cost: 4000 },
+        { name: cityName + " Dining & Food", category: "food", cost: 3000 },
+        { name: cityName + " City Activities", category: "activities", cost: 4000 }
+      ]
+    };
+  }
+
+  /* ── Seed Trip Expenses & Activities retroactively ── */
+  function seedTripExpenses(trip) {
+    let updated = false;
+    if (!trip.itinerary) {
+      trip.itinerary = [];
+    }
+    trip.itinerary.forEach(item => {
+      if (!item.expenses || item.expenses.length === 0) {
+        const key = item.city.toLowerCase();
+        const data = defaultCityData[key] || getFallbackCityData(item.city);
+        item.expenses = JSON.parse(JSON.stringify(data.expenses));
+        updated = true;
+      }
+      if (!item.activities || item.activities.length === 0) {
+        const key = item.city.toLowerCase();
+        const data = defaultCityData[key] || getFallbackCityData(item.city);
+        item.activities = [...data.activities];
+        updated = true;
+      }
+    });
+    return updated;
+  }
+
+  /* ── Calculate total expenses & categories ── */
+  function calcTripExpenses(trip) {
+    let total = 0, count = 0;
+    const byCat = { hotel: 0, transport: 0, food: 0, activities: 0, misc: 0 };
+    (trip.itinerary || []).forEach(city => {
+      (city.expenses || []).forEach(exp => {
+        total += exp.cost || 0;
+        count++;
+        if (byCat[exp.category] !== undefined) byCat[exp.category] += exp.cost || 0;
+      });
+    });
+    return { total, count, byCat };
+  }
+
+  /* ── Sync trip budgets with cityBudgets and totalBudget in localStorage ── */
+  function syncTripBudgets(trip) {
+    const cityBudgets = {};
+    let grandTotal = 0;
+
+    (trip.itinerary || []).forEach(item => {
+      const cityTotal = (item.expenses || []).reduce((sum, exp) => sum + (exp.cost || 0), 0);
+      cityBudgets[item.city] = cityTotal;
+      grandTotal += cityTotal;
+    });
+
+    localStorage.setItem("cityBudgets_" + trip.id, JSON.stringify(cityBudgets));
+    localStorage.setItem("totalBudget_" + trip.id, grandTotal);
+
+    // Sync back to trip object
+    trip.budget = grandTotal;
+
+    // Legacy sync
+    const legacyBudgetData = {
+      totalBudget: grandTotal,
+      hotel: 0,
+      transport: 0,
+      activities: 0,
+      food: 0,
+      misc: 0,
+      linkedTrip: trip.id
+    };
+    (trip.itinerary || []).forEach(item => {
+      (item.expenses || []).forEach(exp => {
+        if (legacyBudgetData[exp.category] !== undefined) {
+          legacyBudgetData[exp.category] += exp.cost || 0;
+        }
+      });
+    });
+    localStorage.setItem("budgetData", JSON.stringify(legacyBudgetData));
+  }
+
+  /* ── Populate trip dropdown ── */
+  function populateTrips() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const select = document.getElementById("trip-select");
+    select.innerHTML = '<option value="">— Choose a trip —</option>';
+    
+    // Seed default trips if the list is empty (failsafe)
+    if (trips.length === 0) {
+      return; // Handled by dashboard or will populate once user navigates
+    }
+
+    trips.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.name + " (" + t.destination + ")";
+      select.appendChild(opt);
+    });
+
+    /* Auto-select from URL param or activeTrip */
+    const params = new URLSearchParams(window.location.search);
+    const tripParam = params.get("trip") || localStorage.getItem("activeTrip");
+    if (tripParam && trips.find(t => String(t.id) === String(tripParam))) {
+      select.value = tripParam;
+      loadTrip();
+    }
+  }
+
+  /* ── Load selected trip ── */
+  function loadTrip() {
+    const select = document.getElementById("trip-select");
+    selectedTripId = select.value;
+    if (!selectedTripId) {
+      document.getElementById("timeline-container").innerHTML = `
+        <div class="empty-itinerary">
+          <div class="icon">🗺️</div>
+          <div class="title">Select a trip to start building</div>
+          <div class="sub">Choose from the dropdown above or create a new trip</div>
+        </div>`;
+      document.getElementById("add-city-bar").style.display = "none";
+      document.getElementById("save-bar").style.display = "none";
+      document.getElementById("floating-budget").classList.remove("show");
+      localStorage.removeItem("activeTrip");
+      return;
+    }
+    /* Set active trip for cross-page linking */
+    localStorage.setItem("activeTrip", selectedTripId);
+    document.getElementById("add-city-bar").style.display = "flex";
+    document.getElementById("save-bar").style.display = "flex";
+
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const tripIdx = trips.findIndex(t => String(t.id) === String(selectedTripId));
+    if (tripIdx !== -1) {
+      const updated = seedTripExpenses(trips[tripIdx]);
+      syncTripBudgets(trips[tripIdx]);
+      if (updated) {
+        localStorage.setItem("trips", JSON.stringify(trips));
+      }
+    }
+
+    renderTimeline();
+    updateFloatingBudget();
+  }
+
+  /* ── Get current trip object ── */
+  function getTrip() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    return trips.find(t => String(t.id) === String(selectedTripId));
+  }
+
+  /* ── Save trips array ── */
+  function saveTrips(trips) {
+    localStorage.setItem("trips", JSON.stringify(trips));
+  }
+
+  /* ── Update floating budget button ── */
+  function updateFloatingBudget() {
+    const trip = getTrip();
+    if (!trip) return;
+    const { total, count } = calcTripExpenses(trip);
+    document.getElementById("fb-amount").textContent = "₹" + total.toLocaleString("en-IN");
+    document.getElementById("fb-items").textContent = count + " expense" + (count !== 1 ? "s" : "") + " · " + trip.name;
+    document.getElementById("floating-budget").classList.add("show");
+  }
+
+  /* ── Navigate to budget ── */
+  function goToBudget() {
+    window.location.href = "6_budget.html?trip=" + selectedTripId;
+  }
+
+  /* ── City emoji lookup ── */
+  const cityEmojis = { "Paris":"🗼","Rome":"🏛️","Barcelona":"🌉","Amsterdam":"🌷","Goa":"🏖️","Panjim":"⛪","Tokyo":"🗼","Kyoto":"🏯","Osaka":"🏰","Bali":"🏝️","New York":"🗽","London":"🎡","Dubai":"🏙️","Singapore":"🇸🇬","Bangkok":"🛕","Mumbai":"🌆","Delhi":"🕌","Jaipur":"🏰" };
+
+  /* ── Render timeline ── */
+  function renderTimeline() {
+    const trip = getTrip();
+    if (!trip) return;
+
+    const container = document.getElementById("timeline-container");
+    const itinerary = trip.itinerary || [];
+
+    if (itinerary.length === 0) {
+      container.innerHTML = `
+        <div class="empty-itinerary">
+          <div class="icon">🏙️</div>
+          <div class="title">No cities added yet</div>
+          <div class="sub">Add your first city above to start building your itinerary</div>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '<div class="timeline">' + itinerary.map((city, idx) => {
+      const expenses = city.expenses || [];
+      const cityTotal = expenses.reduce((s, e) => s + (e.cost || 0), 0);
+
+      return `
+      <div class="city-block" data-idx="${idx}">
+        <div class="city-dot">${idx + 1}</div>
+        <div class="city-card">
+          <div class="city-header">
+            <div class="city-name">
+              <span class="emoji">${cityEmojis[city.city] || '📍'}</span>
+              ${city.city}
+              ${cityTotal > 0 ? `<span class="city-total">₹${cityTotal.toLocaleString("en-IN")}</span>` : ''}
+            </div>
+            <button class="btn btn-danger" onclick="removeCity(${idx})" style="padding:6px 12px;font-size:12px">✕ Remove</button>
+          </div>
+
+          <!-- Activities -->
+          <div class="section-label">Activities</div>
+          <ul class="activities-list" id="activities-${idx}">
+            ${(city.activities || []).map((act) => `
+              <li class="activity-item">
+                <span class="activity-bullet"></span>
+                <span class="activity-text">${act}</span>
+              </li>
+            `).join('')}
+          </ul>
+
+          <!-- Expenses (Read-only default budgets) -->
+          <hr class="expenses-divider">
+          <div class="section-label">Fixed Costs Breakdown</div>
+          <div id="expenses-list-${idx}">
+            ${expenses.map((exp) => `
+              <div class="expense-item">
+                <span class="expense-cat-badge ${catConfig[exp.category]?.class || 'expense-cat-misc'}">${catConfig[exp.category]?.emoji || '📦'} ${catConfig[exp.category]?.label || 'Misc'}</span>
+                <span class="expense-name">${exp.name}</span>
+                <span class="expense-cost">₹${(exp.cost || 0).toLocaleString("en-IN")}</span>
+              </div>
+            `).join('')}
+            ${expenses.length === 0 ? '<div style="font-size:12px;color:#ccc;padding:4px 10px">No expenses added yet</div>' : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  /* ── Add city (auto-populates default budgets and updates live) ── */
+  function addCity() {
+    const input = document.getElementById("new-city");
+    const cityName = input.value.trim();
+    if (!cityName) return;
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const tripIdx = trips.findIndex(t => String(t.id) === String(selectedTripId));
+    if (tripIdx === -1) return;
+    
+    const trip = trips[tripIdx];
+    if (!trip.itinerary) trip.itinerary = [];
+    if (!trip.cities) trip.cities = [];
+
+    // Pre-populate expenses & activities based on default values or fallback
+    const key = cityName.toLowerCase();
+    const data = defaultCityData[key] || getFallbackCityData(cityName);
+
+    trip.itinerary.push({
+      city: cityName,
+      activities: JSON.parse(JSON.stringify(data.activities)),
+      expenses: JSON.parse(JSON.stringify(data.expenses))
+    });
+
+    if (!trip.cities.includes(cityName)) {
+      trip.cities.push(cityName);
+    }
+
+    // Sync and save
+    syncTripBudgets(trip);
+    saveTrips(trips);
+
+    input.value = "";
+    renderTimeline();
+    updateFloatingBudget();
+  }
+
+  /* ── Remove city (auto-updates budget live) ── */
+  function removeCity(idx) {
+    if (!confirm("Remove this city, activities, and its auto-allocated expenses?")) return;
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const tripIdx = trips.findIndex(t => String(t.id) === String(selectedTripId));
+    if (tripIdx === -1) return;
+
+    const trip = trips[tripIdx];
+    const removedCity = trip.itinerary[idx].city;
+    trip.itinerary.splice(idx, 1);
+
+    if (!trip.itinerary.find(i => i.city === removedCity)) {
+      trip.cities = trip.cities.filter(c => c !== removedCity);
+    }
+
+    // Sync and save
+    syncTripBudgets(trip);
+    saveTrips(trips);
+
+    renderTimeline();
+    updateFloatingBudget();
+  }
+
+  /* ── Save itinerary ── */
+  function saveItinerary() {
+    document.getElementById("save-success").style.display = "block";
+    setTimeout(() => { document.getElementById("save-success").style.display = "none"; }, 2500);
+  }
+
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  }
+
+  /* ── Init ── */
+  populateTrips();
+</script>
+</body>
+</html>

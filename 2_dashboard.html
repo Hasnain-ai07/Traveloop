@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveloop – Dashboard</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f4f0;display:flex;min-height:100vh}
+
+  /* ── Sidebar ── */
+  .sidebar{width:220px;background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100}
+  .logo{padding:20px 16px 16px;border-bottom:0.5px solid #e0e0e0}
+  .logo-text{font-size:17px;font-weight:600;color:#1a1a1a}
+  .logo-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .nav{padding:12px 8px;flex:1}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#666;text-decoration:none;margin-bottom:2px;transition:background 0.15s;font-weight:500}
+  .nav a:hover{background:#f5f4f0;color:#1a1a1a}
+  .nav a.active{background:#EEEDFE;color:#534AB7}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .user-area{padding:12px;border-top:0.5px solid #e0e0e0}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f5f4f0;cursor:pointer;transition:background 0.15s;text-decoration:none}
+  .user-pill:hover{background:#EEEDFE}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#CECBF6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3489;flex-shrink:0}
+
+  /* ── Mobile hamburger ── */
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:#fff;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:18px}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90}
+
+  /* ── Main ── */
+  .main{margin-left:220px;flex:1;padding:28px;overflow-y:auto}
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+  .page-title{font-size:20px;font-weight:600;color:#1a1a1a}
+  .page-sub{font-size:13px;color:#888;margin-top:4px}
+  .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:background 0.15s}
+  .btn-primary:hover{background:#3C3489}
+  .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+  .metric-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:16px}
+  .metric-label{font-size:12px;color:#888;margin-bottom:6px}
+  .metric-value{font-size:24px;font-weight:600;color:#1a1a1a}
+  .metric-sub{font-size:11px;color:#aaa;margin-top:3px}
+  .section-title{font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+  .trips-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px}
+  .trip-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:16px;cursor:pointer;transition:border-color 0.15s;text-decoration:none;display:block}
+  .trip-card:hover{border-color:#534AB7}
+  .trip-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+  .trip-name{font-size:14px;font-weight:600;color:#1a1a1a}
+  .badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+  .badge-purple{background:#EEEDFE;color:#534AB7}
+  .badge-teal{background:#E1F5EE;color:#0F6E56}
+  .badge-amber{background:#FAEEDA;color:#854F0B}
+  .trip-meta{font-size:12px;color:#aaa;margin-bottom:8px}
+  .city-chips{display:flex;gap:4px;flex-wrap:wrap}
+  .chip{font-size:11px;padding:2px 8px;background:#f5f4f0;border-radius:20px;color:#666}
+  .dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .dest-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:border-color 0.15s}
+  .dest-card:hover{border-color:#534AB7}
+  .dest-emoji{font-size:26px;margin-bottom:6px}
+  .dest-name{font-size:13px;font-weight:600;color:#1a1a1a}
+  .dest-info{font-size:11px;color:#aaa;margin-top:2px}
+
+  /* ── Floating Budget Button ── */
+  .floating-budget{position:fixed;bottom:24px;right:24px;background:linear-gradient(135deg,#534AB7,#7B6FDE);color:#fff;border-radius:50px;padding:12px 22px 12px 16px;display:none;align-items:center;gap:12px;cursor:pointer;box-shadow:0 4px 24px rgba(83,74,183,.3);transition:all .3s;z-index:500;text-decoration:none;border:none;font-family:inherit}
+  .floating-budget:hover{transform:translateY(-3px);box-shadow:0 8px 32px rgba(83,74,183,.4)}
+  .floating-budget.show{display:flex}
+  .fb-icon{font-size:20px;animation:fbPulse 2s ease-in-out infinite}
+  @keyframes fbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+  .fb-info{text-align:left}
+  .fb-label{font-size:10px;opacity:.85;font-weight:500;letter-spacing:.03em}
+  .fb-amount{font-size:16px;font-weight:700}
+  .fb-arrow{font-size:16px;opacity:.7;margin-left:4px}
+  .fb-items{font-size:10px;opacity:.75;margin-top:1px}
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .hamburger{display:block}
+    .overlay.show{display:block}
+    .main{margin-left:0;padding:20px;padding-top:56px}
+    .metric-grid{grid-template-columns:1fr}
+    .trips-grid{grid-template-columns:1fr}
+    .dest-grid{grid-template-columns:repeat(2,1fr)}
+    .floating-budget{bottom:16px;right:16px;left:16px;border-radius:16px;justify-content:center}
+  }
+</style>
+</head>
+<body>
+
+<!-- Mobile hamburger -->
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-text">✈ Traveloop</div>
+    <div class="logo-sub">Travel planning made easy</div>
+  </div>
+  <nav class="nav">
+    <a href="2_dashboard.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="4_my_trips.html"><span class="nav-icon">🗺️</span> My trips</a>
+    <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+    <a href="5_itinerary_builder.html"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+    <a href="6_budget.html"><span class="nav-icon">📊</span> Budget</a>
+    <a href="7_share_trip.html"><span class="nav-icon">🔗</span> Share trip</a>
+  </nav>
+  <div class="user-area">
+    <a href="8_profile.html" class="user-pill" id="user-pill">
+      <div class="avatar" id="user-avatar">AJ</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="user-name">Arjun Joshi</div>
+        <div style="font-size:11px;color:#aaa">Free plan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title" id="greeting">Good morning, Arjun 👋</div>
+      <div class="page-sub" id="upcoming-trips-summary">You have upcoming trips this month</div>
+    </div>
+    <a href="3_create_trip.html" class="btn-primary">+ Plan new trip</a>
+  </div>
+
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-label">Total trips</div>
+      <div class="metric-value" id="total-trips-value">0</div>
+      <div class="metric-sub" id="total-trips-sub">0 upcoming · 0 past</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Cities planned</div>
+      <div class="metric-value" id="cities-planned-value">0</div>
+      <div class="metric-sub" id="cities-planned-sub">Across destinations</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Budget tracked</div>
+      <div class="metric-value" id="budget-tracked-value">₹0</div>
+      <div class="metric-sub" id="budget-tracked-sub">Avg ₹0 per city</div>
+    </div>
+  </div>
+
+  <div class="section-title">Your trips</div>
+  <div class="trips-grid">
+    <!-- Dynamically populated -->
+  </div>
+
+  <div class="section-title">Explore destinations</div>
+  <div class="dest-grid">
+    <div class="dest-card" onclick="exploreCity('Paris')"><div class="dest-emoji">🗼</div><div class="dest-name">Paris</div><div class="dest-info">France · ₹27,000 package</div></div>
+    <div class="dest-card" onclick="exploreCity('Rome')"><div class="dest-emoji">🏛️</div><div class="dest-name">Rome</div><div class="dest-info">Italy · ₹23,000 package</div></div>
+    <div class="dest-card" onclick="exploreCity('Barcelona')"><div class="dest-emoji">🌉</div><div class="dest-name">Barcelona</div><div class="dest-info">Spain · ₹22,500 package</div></div>
+    <div class="dest-card" onclick="exploreCity('Amsterdam')"><div class="dest-emoji">🌷</div><div class="dest-name">Amsterdam</div><div class="dest-info">Netherlands · ₹29,500 package</div></div>
+    <div class="dest-card" onclick="exploreCity('Goa')"><div class="dest-emoji">🏖️</div><div class="dest-name">Goa</div><div class="dest-info">India · ₹20,000 package</div></div>
+    <div class="dest-card" onclick="exploreCity('Zurich')"><div class="dest-emoji">🏔️</div><div class="dest-name">Zurich</div><div class="dest-info">Switzerland · ₹20,000 package</div></div>
+  </div>
+</div>
+
+<!-- Floating View Budget Button -->
+<button class="floating-budget" id="floating-budget" onclick="goToBudget()">
+  <div class="fb-icon">💰</div>
+  <div class="fb-info">
+    <div class="fb-label">VIEW BUDGET</div>
+    <div class="fb-amount" id="fb-amount">₹0</div>
+    <div class="fb-items" id="fb-items">0 expenses</div>
+  </div>
+  <div class="fb-arrow">→</div>
+</button>
+
+<script>
+  /* ── Protected Route ── */
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Fixed default costs data for seeding ── */
+  const defaultCityData = {
+    "paris": {
+      activities: ["Eiffel Tower visit","Louvre Museum","Seine river cruise","Montmartre walk"],
+      expenses: [
+        { name: "Paris Hotel Stay", category: "hotel", cost: 12000 },
+        { name: "Paris Local Transport", category: "transport", cost: 5000 },
+        { name: "Paris Dining & Food", category: "food", cost: 4000 },
+        { name: "Paris City Activities", category: "activities", cost: 6000 }
+      ]
+    },
+    "rome": {
+      activities: ["Colosseum tour","Vatican City","Trevi Fountain","Pasta cooking class"],
+      expenses: [
+        { name: "Rome Hotel Stay", category: "hotel", cost: 10000 },
+        { name: "Rome Local Transport", category: "transport", cost: 4500 },
+        { name: "Rome Dining & Food", category: "food", cost: 3500 },
+        { name: "Rome City Activities", category: "activities", cost: 5000 }
+      ]
+    },
+    "barcelona": {
+      activities: ["Sagrada Familia","Park Güell","La Rambla stroll","Beach day"],
+      expenses: [
+        { name: "Barcelona Hotel Stay", category: "hotel", cost: 11000 },
+        { name: "Barcelona Local Transport", category: "transport", cost: 4000 },
+        { name: "Barcelona Dining & Food", category: "food", cost: 3000 },
+        { name: "Barcelona City Activities", category: "activities", cost: 4500 }
+      ]
+    },
+    "amsterdam": {
+      activities: ["Canal cruise","Anne Frank House","Van Gogh Museum","Vondelpark"],
+      expenses: [
+        { name: "Amsterdam Hotel Stay", category: "hotel", cost: 13000 },
+        { name: "Amsterdam Local Transport", category: "transport", cost: 5500 },
+        { name: "Amsterdam Dining & Food", category: "food", cost: 4500 },
+        { name: "Amsterdam City Activities", category: "activities", cost: 6500 }
+      ]
+    }
+  };
+
+  function getFallbackCityData(cityName) {
+    return {
+      activities: ["Explore local sights", "Try local cuisine"],
+      expenses: [
+        { name: cityName + " Hotel Stay", category: "hotel", cost: 9000 },
+        { name: cityName + " Local Transport", category: "transport", cost: 4000 },
+        { name: cityName + " Dining & Food", category: "food", cost: 3000 },
+        { name: cityName + " City Activities", category: "activities", cost: 4000 }
+      ]
+    };
+  }
+
+  function seedTripExpenses(trip) {
+    if (!trip.itinerary) trip.itinerary = [];
+    trip.itinerary.forEach(item => {
+      if (!item.expenses || item.expenses.length === 0) {
+        const key = item.city.toLowerCase();
+        const data = defaultCityData[key] || getFallbackCityData(item.city);
+        item.expenses = JSON.parse(JSON.stringify(data.expenses));
+      }
+      if (!item.activities || item.activities.length === 0) {
+        const key = item.city.toLowerCase();
+        const data = defaultCityData[key] || getFallbackCityData(item.city);
+        item.activities = [...data.activities];
+      }
+    });
+
+    // Calculate dynamic budget and sync
+    let total = 0;
+    trip.itinerary.forEach(item => {
+      total += item.expenses.reduce((s, e) => s + (e.cost || 0), 0);
+    });
+    trip.budget = total > 0 ? total : trip.budget;
+  }
+
+  /* ── Seed default trips data if not present ── */
+  if (!localStorage.getItem("trips")) {
+    const defaultTrips = [
+      { id: 1, name: "Europe Summer '25", desc: "Backpacking across Western Europe", start: "2025-06-10", end: "2025-07-02", destination: "Europe", budget: 102000, status: "upcoming", cities: ["Paris","Rome","Barcelona","Amsterdam"], itinerary: [
+        { city: "Paris", activities: [], expenses: [] },
+        { city: "Rome", activities: [], expenses: [] },
+        { city: "Barcelona", activities: [], expenses: [] },
+        { city: "Amsterdam", activities: [], expenses: [] }
+      ]},
+      { id: 2, name: "Goa Weekend", desc: "Quick beach getaway", start: "2025-06-01", end: "2025-06-03", destination: "Goa", budget: 40000, status: "upcoming", cities: ["Goa","Panjim"], itinerary: [
+        { city: "Goa", activities: [], expenses: [] },
+        { city: "Panjim", activities: [], expenses: [] }
+      ]},
+      { id: 3, name: "Japan Cherry Blossom", desc: "Spring trip to Japan", start: "2025-03-22", end: "2025-04-05", destination: "Japan", budget: 60000, status: "past", cities: ["Tokyo","Kyoto","Osaka"], itinerary: [
+        { city: "Tokyo", activities: [], expenses: [] },
+        { city: "Kyoto", activities: [], expenses: [] },
+        { city: "Osaka", activities: [], expenses: [] }
+      ]}
+    ];
+    
+    defaultTrips.forEach(trip => seedTripExpenses(trip));
+    localStorage.setItem("trips", JSON.stringify(defaultTrips));
+  } else {
+    // Failsafe: Ensure existing saved trips have pre-populated expenses seeded
+    const currentTrips = JSON.parse(localStorage.getItem("trips") || "[]");
+    let needsSave = false;
+    currentTrips.forEach(t => {
+      let expenseCount = 0;
+      (t.itinerary || []).forEach(city => { expenseCount += (city.expenses || []).length; });
+      if (expenseCount === 0 && (t.itinerary || []).length > 0) {
+        seedTripExpenses(t);
+        needsSave = true;
+      }
+    });
+    if (needsSave) {
+      localStorage.setItem("trips", JSON.stringify(currentTrips));
+    }
+  }
+
+  /* ── Seed default legacy budgetData if not present ── */
+  if (!localStorage.getItem("budgetData")) {
+    const defaultBudget = {
+      totalBudget: 102000,
+      hotel: 46000,
+      transport: 18500,
+      activities: 21500,
+      food: 16000,
+      misc: 0
+    };
+    localStorage.setItem("budgetData", JSON.stringify(defaultBudget));
+  }
+
+  /* ── Greeting with user name ── */
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  if (userData.name) {
+    const firstName = userData.name.split(" ")[0];
+    const hour = new Date().getHours();
+    let greet = "Good morning";
+    if (hour >= 12 && hour < 17) greet = "Good afternoon";
+    else if (hour >= 17) greet = "Good evening";
+    document.getElementById("greeting").textContent = greet + ", " + firstName + " 👋";
+    document.getElementById("user-name").textContent = userData.name;
+    const initials = userData.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    document.getElementById("user-avatar").textContent = initials;
+  }
+
+  /* ── Dynamic Metrics calculation from localStorage ── */
+  function updateDashboardMetrics() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    
+    // Total Trips
+    const totalTrips = trips.length;
+    const upcomingTrips = trips.filter(t => t.status === "upcoming").length;
+    const pastTrips = trips.filter(t => t.status === "past").length;
+    
+    document.getElementById("total-trips-value").textContent = totalTrips;
+    document.getElementById("total-trips-sub").textContent = `${upcomingTrips} upcoming · ${pastTrips} past`;
+
+    // Cities Planned
+    let cityCount = 0;
+    const uniqueDestinations = new Set();
+    trips.forEach(t => {
+      cityCount += (t.itinerary || []).length;
+      if (t.destination && t.destination !== "TBD") {
+        uniqueDestinations.add(t.destination);
+      }
+    });
+    const countryCount = uniqueDestinations.size || 1;
+    document.getElementById("cities-planned-value").textContent = cityCount;
+    document.getElementById("cities-planned-sub").textContent = `Across ${countryCount} primary destination${countryCount !== 1 ? 's' : ''}`;
+
+    // Budget Tracked
+    let totalBudget = 0;
+    trips.forEach(t => {
+      let tBudget = 0;
+      (t.itinerary || []).forEach(city => {
+        (city.expenses || []).forEach(exp => {
+          tBudget += exp.cost || 0;
+        });
+      });
+      totalBudget += tBudget > 0 ? tBudget : t.budget;
+    });
+
+    let displayBudget = "₹0";
+    if (totalBudget >= 100000) {
+      displayBudget = "₹" + (totalBudget / 100000).toFixed(1) + "L";
+    } else {
+      displayBudget = "₹" + totalBudget.toLocaleString("en-IN");
+    }
+    
+    document.getElementById("budget-tracked-value").textContent = displayBudget;
+    document.getElementById("budget-tracked-sub").textContent = `Avg ₹${cityCount > 0 ? Math.round(totalBudget / cityCount).toLocaleString("en-IN") : 0} per city`;
+
+    // Summary heading
+    document.getElementById("upcoming-trips-summary").textContent = `You have ${upcomingTrips} upcoming trip${upcomingTrips !== 1 ? 's' : ''} planned!`;
+  }
+
+  /* ── Dynamic Trip Cards rendering from localStorage ── */
+  function renderDashboardTrips() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const grid = document.querySelector(".trips-grid");
+    if (!grid) return;
+    
+    if (trips.length === 0) {
+      grid.innerHTML = '<div style="grid-column:span 2;padding:24px;text-align:center;background:#fff;border-radius:12px;border:0.5px solid #e0e0e0;color:#666">No trips planned yet. Click "+ Plan new trip" above!</div>';
+      return;
+    }
+
+    grid.innerHTML = trips.map(trip => {
+      const days = Math.round((new Date(trip.end) - new Date(trip.start)) / 86400000) || 1;
+      const badgeClass = trip.status === "upcoming" ? "badge-purple" : trip.status === "past" ? "badge-amber" : "badge-teal";
+      const statusText = trip.status.charAt(0).toUpperCase() + trip.status.slice(1);
+      
+      // Calculate dynamic total expenses
+      let totalExp = 0;
+      (trip.itinerary || []).forEach(c => {
+        (c.expenses || []).forEach(e => {
+          totalExp += e.cost || 0;
+        });
+      });
+      const displayBudget = totalExp > 0 ? totalExp : trip.budget;
+
+      return `
+        <a href="5_itinerary_builder.html?trip=${trip.id}" class="trip-card">
+          <div class="trip-card-top">
+            <div class="trip-name">${trip.name}</div>
+            <span class="badge ${badgeClass}">${statusText}</span>
+          </div>
+          <div class="trip-meta">${trip.destination} · ${days} days · ${(trip.itinerary || []).length} cities</div>
+          <div class="city-chips" style="margin-bottom:12px">
+            ${(trip.cities || []).map(c => `<span class="chip">${c}</span>`).join('')}
+          </div>
+          <div style="font-size:12px;color:#888;display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:0.5px solid #f0f0f0">
+            <span>Budget: <strong>₹${displayBudget.toLocaleString("en-IN")}</strong></span>
+            <span style="color:#534AB7;font-weight:500">Open itinerary →</span>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  /* ── Floating View Budget Button update ── */
+  function updateFloatingBudget() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const activeTripId = localStorage.getItem("activeTrip") || (trips[0] ? trips[0].id : null);
+    
+    if (!activeTripId) return;
+    
+    const activeTrip = trips.find(t => String(t.id) === String(activeTripId));
+    if (!activeTrip) return;
+
+    let total = 0, count = 0;
+    (activeTrip.itinerary || []).forEach(city => {
+      (city.expenses || []).forEach(exp => {
+        total += exp.cost || 0;
+        count++;
+      });
+    });
+
+    document.getElementById("fb-amount").textContent = "₹" + total.toLocaleString("en-IN");
+    document.getElementById("fb-items").textContent = count + " expense" + (count !== 1 ? "s" : "") + " · " + activeTrip.name;
+    document.getElementById("floating-budget").classList.add("show");
+  }
+
+  function goToBudget() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const activeTripId = localStorage.getItem("activeTrip") || (trips[0] ? trips[0].id : null);
+    if (activeTripId) {
+      window.location.href = "6_budget.html?trip=" + activeTripId;
+    } else {
+      window.location.href = "6_budget.html";
+    }
+  }
+
+  function exploreCity(cityName) {
+    // If user clicks a card in explore section, direct them to create a trip or view details
+    window.location.href = "3_create_trip.html?dest=" + encodeURIComponent(cityName);
+  }
+
+  /* ── Mobile sidebar toggle ── */
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  }
+
+  /* ── Initial Render ── */
+  updateDashboardMetrics();
+  renderDashboardTrips();
+  updateFloatingBudget();
+</script>
+</body>
+</html>

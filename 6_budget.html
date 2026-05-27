@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traveloop – Budget & Checkout</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f4f0;
+      display: flex;
+      min-height: 100vh
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 0.5px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100
+    }
+
+    .logo {
+      padding: 20px 16px 16px;
+      border-bottom: 0.5px solid #e0e0e0
+    }
+
+    .logo-text {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a1a
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 2px
+    }
+
+    .nav {
+      padding: 12px 8px;
+      flex: 1
+    }
+
+    .nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #666;
+      text-decoration: none;
+      margin-bottom: 2px;
+      transition: background 0.15s;
+      font-weight: 500
+    }
+
+    .nav a:hover {
+      background: #f5f4f0;
+      color: #1a1a1a
+    }
+
+    .nav a.active {
+      background: #EEEDFE;
+      color: #534AB7
+    }
+
+    .nav-icon {
+      font-size: 15px;
+      width: 18px;
+      text-align: center
+    }
+
+    .user-area {
+      padding: 12px;
+      border-top: 0.5px solid #e0e0e0
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      background: #f5f4f0;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none
+    }
+
+    .user-pill:hover {
+      background: #EEEDFE
+    }
+
+    .avatar {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #CECBF6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #3C3489;
+      flex-shrink: 0
+    }
+
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 200;
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 18px
+    }
+
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .3);
+      z-index: 90
+    }
+
+    /* ── Main ── */
+    .main {
+      margin-left: 220px;
+      flex: 1;
+      padding: 28px;
+      overflow-y: auto;
+      padding-bottom: 80px
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      gap: 12px
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1a1a1a
+    }
+
+    .page-sub {
+      font-size: 13px;
+      color: #888;
+      margin-top: 4px
+    }
+
+    /* ── Trip selector ── */
+    .trip-selector {
+      margin-bottom: 24px
+    }
+
+    .trip-selector select {
+      width: 100%;
+      max-width: 360px;
+      padding: 10px 12px;
+      border: 0.5px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #fff;
+      outline: none;
+      font-family: inherit
+    }
+
+    .trip-selector select:focus {
+      border-color: #534AB7
+    }
+
+    /* ── Overview cards ── */
+    .budget-overview {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 28px
+    }
+
+    .overview-card {
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 14px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .overview-card.total {
+      background: linear-gradient(135deg, #534AB7, #7B6FDE);
+      border: none
+    }
+
+    .overview-card.total .ov-label,
+    .overview-card.total .ov-value,
+    .overview-card.total .ov-sub {
+      color: #fff
+    }
+
+    .ov-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+      font-weight: 500
+    }
+
+    .ov-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #1a1a1a
+    }
+
+    .ov-sub {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px
+    }
+
+    .ov-icon {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      font-size: 24px;
+      opacity: .6
+    }
+
+    .overview-card.total .ov-icon {
+      opacity: .4
+    }
+
+    /* ── Section Title ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+      margin-top: 24px
+    }
+
+    /* ── City Breakdown Cards ── */
+    .city-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 28px
+    }
+
+    .city-budget-card {
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 14px;
+      padding: 18px
+    }
+
+    .cbc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 0.5px solid #f0efef
+    }
+
+    .cbc-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .cbc-total {
+      font-size: 14px;
+      font-weight: 700;
+      color: #534AB7
+    }
+
+    .cbc-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 6px
+    }
+
+    .cbc-row span:last-child {
+      font-weight: 600;
+      color: #1a1a1a
+    }
+
+    /* ── Category breakdown ── */
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 28px
+    }
+
+    .cat-card {
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 14px;
+      padding: 18px
+    }
+
+    .cat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px
+    }
+
+    .cat-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .cat-amount {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a
+    }
+
+    .cat-bar {
+      width: 100%;
+      height: 8px;
+      background: #f0efef;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 6px
+    }
+
+    .cat-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .5s ease
+    }
+
+    .cat-sub {
+      font-size: 11px;
+      color: #888;
+      display: flex;
+      justify-content: space-between
+    }
+
+    /* ── Travel Checkout Panel ── */
+    .checkout-card {
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 28px
+    }
+
+    .checkout-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+      font-size: 13px
+    }
+
+    .summary-table td {
+      padding: 8px 0;
+      color: #666
+    }
+
+    .summary-table tr.total-row td {
+      border-top: 1px solid #e0e0e0;
+      font-weight: 700;
+      font-size: 15px;
+      color: #1a1a1a;
+      padding-top: 12px
+    }
+
+    .summary-table tr.total-row td:last-child {
+      color: #534AB7
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 0.5px solid #d0d0d0;
+      background: #fff;
+      color: #666;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit
+    }
+
+    .btn:hover {
+      background: #f5f4f0
+    }
+
+    .btn-primary {
+      background: #534AB7;
+      color: #fff;
+      border-color: #534AB7;
+      width: 100%;
+      padding: 12px;
+      font-size: 14px
+    }
+
+    .btn-primary:hover {
+      background: #3C3489
+    }
+
+    .btn-success {
+      background: #0F6E56;
+      color: #fff;
+      border-color: #0F6E56;
+      width: 100%;
+      padding: 12px;
+      font-size: 14px
+    }
+
+    .btn-success:hover {
+      background: #085041
+    }
+
+    /* ── Interactive Payment Section ── */
+    .payment-section {
+      border-top: 1px solid #f0efef;
+      margin-top: 20px;
+      padding-top: 20px;
+      display: none
+    }
+
+    .payment-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 20px
+    }
+
+    .payment-tab {
+      flex: 1;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d0d0d0;
+      background: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px
+    }
+
+    .payment-tab.active {
+      border-color: #534AB7;
+      color: #534AB7;
+      background: #EEEDFE
+    }
+
+    .tab-content {
+      display: none
+    }
+
+    .tab-content.active {
+      display: block
+    }
+
+    /* Card Mockup styling */
+    .card-flex {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .credit-card-mockup {
+      width: 290px;
+      height: 165px;
+      background: linear-gradient(135deg, #1f1c2c, #928dab);
+      border-radius: 14px;
+      padding: 20px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, .15);
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0
+    }
+
+    .credit-card-mockup::before {
+      content: '';
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+      top: -30px;
+      right: -30px
+    }
+
+    .cc-chip {
+      width: 36px;
+      height: 26px;
+      background: linear-gradient(135deg, #e6c07b, #abb2bf);
+      border-radius: 5px;
+      position: relative
+    }
+
+    .cc-number {
+      font-size: 17px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      margin-top: 10px
+    }
+
+    .cc-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end
+    }
+
+    .cc-name {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .cc-expiry {
+      font-size: 11px
+    }
+
+    .cc-label {
+      font-size: 8px;
+      opacity: 0.6;
+      margin-bottom: 2px
+    }
+
+    /* Card Inputs */
+    .card-inputs {
+      flex: 1;
+      min-width: 240px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .card-inputs .full-width {
+      grid-column: span 2
+    }
+
+    .form-group {
+      margin-bottom: 4px
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 4px;
+      font-weight: 600
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 9px 10px;
+      border: 0.5px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit
+    }
+
+    .form-group input:focus {
+      border-color: #534AB7
+    }
+
+    /* UPI styling */
+    .upi-box {
+      text-align: center;
+      padding: 16px;
+      border: 1.5px dashed #d0d0d0;
+      border-radius: 12px;
+      background: #fcfcfa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px
+    }
+
+    .upi-qr-placeholder {
+      width: 120px;
+      height: 120px;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative
+    }
+
+    .upi-qr-svg {
+      width: 100%;
+      height: 100%
+    }
+
+    .upi-input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 320px
+    }
+
+    .upi-input-row input {
+      flex: 1;
+      padding: 9px 10px;
+      border: 0.5px solid #d0d0d0;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit
+    }
+
+    .upi-input-row input:focus {
+      border-color: #534AB7
+    }
+
+    /* Success Screen styling */
+    .success-screen {
+      text-align: center;
+      padding: 32px 16px;
+      display: none
+    }
+
+    .success-checkmark {
+      width: 64px;
+      height: 64px;
+      background: #E1F5EE;
+      color: #0F6E56;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 16px;
+      animation: successPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)
+    }
+
+    @keyframes successPop {
+      0% {
+        transform: scale(0.3);
+        opacity: 0
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+    }
+
+    .success-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 6px
+    }
+
+    .success-sub {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 20px
+    }
+
+    .receipt-box {
+      background: #f9f8f6;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: left;
+      font-size: 12px;
+      max-width: 360px;
+      margin: 0 auto 20px
+    }
+
+    .receipt-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px
+    }
+
+    .receipt-row span:first-child {
+      color: #888
+    }
+
+    .receipt-row span:last-child {
+      font-weight: 600;
+      color: #1a1a1a
+    }
+
+    /* Status badge */
+    .status-badge {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase
+    }
+
+    .status-pending {
+      background: #FFEBD4;
+      color: #B25E00
+    }
+
+    .status-paid {
+      background: #E1F5EE;
+      color: #0F6E56
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 20px;
+      background: #fff;
+      border: 0.5px solid #e0e0e0;
+      border-radius: 14px
+    }
+
+    @media(max-width:768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform .25s
+      }
+
+      .sidebar.open {
+        transform: translateX(0)
+      }
+
+      .hamburger {
+        display: block
+      }
+
+      .overlay.show {
+        display: block
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 20px;
+        padding-top: 56px
+      }
+
+      .budget-overview {
+        grid-template-columns: 1fr
+      }
+
+      .city-grid {
+        grid-template-columns: 1fr
+      }
+
+      .category-grid {
+        grid-template-columns: 1fr
+      }
+
+      .card-flex {
+        flex-direction: column;
+        align-items: stretch
+      }
+
+      .credit-card-mockup {
+        width: 100%
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <div class="logo-text">✈ Traveloop</div>
+      <div class="logo-sub">Travel planning made easy</div>
+    </div>
+    <nav class="nav">
+      <a href="2_dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+      <a href="4_my_trips.html"><span class="nav-icon">🗺️</span> My trips</a>
+      <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+      <a href="5_itinerary_builder.html"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+      <a href="6_budget.html" class="active"><span class="nav-icon">📊</span> Budget</a>
+      <a href="7_share_trip.html"><span class="nav-icon">🔗</span> Share trip</a>
+    </nav>
+    <div class="user-area">
+      <a href="8_profile.html" class="user-pill" id="user-pill">
+        <div class="avatar" id="user-avatar">AJ</div>
+        <div>
+          <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="user-name">Arjun Joshi</div>
+          <div style="font-size:11px;color:#aaa">Free plan</div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Budget Tracker & Checkout 📊</div>
+        <div class="page-sub">Track your travel spending and securely make booking payments</div>
+      </div>
+    </div>
+
+    <!-- Trip selector -->
+    <div class="trip-selector">
+      <label style="display:block;font-size:12px;color:#666;margin-bottom:6px;font-weight:500">Select a trip</label>
+      <select id="trip-select" onchange="loadSelectedTrip()">
+        <option value="">— Choose a trip —</option>
+      </select>
+    </div>
+
+    <div id="active-budget-area" style="display:none">
+      <!-- Overview cards -->
+      <div class="budget-overview">
+        <div class="overview-card total">
+          <div class="ov-icon">💰</div>
+          <div class="ov-label">Trip Budget</div>
+          <div class="ov-value" id="total-budget">₹0</div>
+          <div class="ov-sub">connected grand total</div>
+        </div>
+        <div class="overview-card">
+          <div class="ov-icon">📍</div>
+          <div class="ov-label">Destinations</div>
+          <div class="ov-value" id="city-count">0 cities</div>
+          <div class="ov-sub">fixed costs pre-calculated</div>
+        </div>
+        <div class="overview-card">
+          <div class="ov-icon">🛡️</div>
+          <div class="ov-label">Payment Status</div>
+          <div style="margin-top:10px">
+            <span class="status-badge" id="payment-status-badge">Pending</span>
+          </div>
+          <div class="ov-sub" id="payment-sub-label" style="margin-top:8px">Ready for checkout</div>
+        </div>
+      </div>
+
+      <!-- City wise breakdown -->
+      <div class="section-title">City-Wise Budgets</div>
+      <div class="city-grid" id="city-wise-grid">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Category breakdown -->
+      <div class="section-title">Category Distribution</div>
+      <div class="category-grid" id="category-grid">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Checkout Panel -->
+      <div class="checkout-card" id="checkout-panel">
+        <!-- Normal Checkout Screen -->
+        <div id="checkout-standard-screen">
+          <div class="checkout-title">💸 Checkout & Payments Summary</div>
+          <table class="summary-table">
+            <tbody id="summary-table-body">
+              <!-- Dynamically populated items -->
+            </tbody>
+          </table>
+
+          <button class="btn btn-primary" id="btn-proceed-pay" onclick="proceedToPayment()">
+            🔒 Proceed to Payment
+          </button>
+        </div>
+
+        <!-- Payment Interface Screen -->
+        <div class="payment-section" id="payment-interface">
+          <div class="checkout-title" style="margin-bottom:14px">💳 Secure Payment Details</div>
+          <div class="payment-tabs">
+            <button class="payment-tab active" id="tab-card" onclick="switchPaymentTab('card')">
+              💳 Credit / Debit Card
+            </button>
+            <button class="payment-tab" id="tab-upi" onclick="switchPaymentTab('upi')">
+              📱 UPI Payment
+            </button>
+          </div>
+
+          <!-- Card Payment Content -->
+          <div class="tab-content active" id="pay-content-card">
+            <div class="card-flex">
+              <!-- Card Mockup -->
+              <div class="credit-card-mockup" id="card-mockup">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div class="cc-chip"></div>
+                  <div style="font-weight:700;font-style:italic;font-size:14px">TRAVELOOP</div>
+                </div>
+                <div class="cc-number" id="mock-number">•••• •••• •••• ••••</div>
+                <div class="cc-flex">
+                  <div>
+                    <div class="cc-label">CARDHOLDER</div>
+                    <div class="cc-name" id="mock-name">MOH Hasnen</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div class="cc-label">EXPIRES</div>
+                    <div class="cc-expiry" id="mock-expiry">12/28</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Inputs -->
+              <div class="card-inputs">
+                <div class="form-group full-width">
+                  <label>CARD NUMBER</label>
+                  <input type="text" id="cc-num-input" placeholder="4111 2222 3333 4444" maxlength="19"
+                    oninput="updateCardMockup()">
+                </div>
+                <div class="form-group full-width">
+                  <label>CARDHOLDER NAME</label>
+                  <input type="text" id="cc-name-input" placeholder="Arjun Joshi" oninput="updateCardMockup()">
+                </div>
+                <div class="form-group">
+                  <label>EXPIRY DATE</label>
+                  <input type="text" id="cc-exp-input" placeholder="MM/YY" maxlength="5" oninput="updateCardMockup()">
+                </div>
+                <div class="form-group">
+                  <label>CVV</label>
+                  <input type="password" id="cc-cvv-input" placeholder="•••" maxlength="3">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Payment Content -->
+          <div class="tab-content" id="pay-content-upi">
+            <div class="upi-box">
+              <div class="upi-qr-placeholder">
+                <!-- Inline High-Fidelity SVG QR Code -->
+                <svg class="upi-qr-svg" viewBox="0 0 100 100">
+                  <rect width="100" height="100" fill="#fff" />
+                  <!-- Outer top-left finder pattern -->
+                  <rect x="10" y="10" width="25" height="25" fill="#1f1c2c" />
+                  <rect x="13" y="13" width="19" height="19" fill="#fff" />
+                  <rect x="16" y="16" width="13" height="13" fill="#1f1c2c" />
+                  <!-- Outer top-right finder pattern -->
+                  <rect x="65" y="10" width="25" height="25" fill="#1f1c2c" />
+                  <rect x="68" y="13" width="19" height="19" fill="#fff" />
+                  <rect x="71" y="16" width="13" height="13" fill="#1f1c2c" />
+                  <!-- Outer bottom-left finder pattern -->
+                  <rect x="10" y="65" width="25" height="25" fill="#1f1c2c" />
+                  <rect x="13" y="68" width="19" height="19" fill="#fff" />
+                  <rect x="16" y="71" width="13" height="13" fill="#1f1c2c" />
+                  <!-- Some random mock QR noise points -->
+                  <rect x="42" y="15" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="52" y="25" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="42" y="38" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="15" y="42" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="25" y="52" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="38" y="42" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="50" y="50" width="10" height="10" fill="#1f1c2c" />
+                  <rect x="70" y="45" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="80" y="52" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="45" y="70" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="52" y="80" width="6" height="6" fill="#1f1c2c" />
+                  <rect x="72" y="72" width="10" height="10" fill="#1f1c2c" />
+                </svg>
+              </div>
+              <div style="font-size:11px;color:#aaa">Scan this QR code using GPay, PhonePe or Paytm to pay instantly
+              </div>
+
+              <div style="font-size:12px;font-weight:600;color:#666">OR PAY VIA UPI ID</div>
+              <div class="upi-input-row">
+                <input type="text" id="upi-id-input" placeholder="e.g. arjun@okaxis">
+                <button class="btn" style="padding:9px 12px" onclick="verifyUPI()">Verify ID</button>
+              </div>
+              <div id="upi-verification-msg" style="font-size:11px;display:none"></div>
+            </div>
+          </div>
+
+          <button class="btn btn-success" style="margin-top:20px" id="btn-pay-now" onclick="executePayment()">
+            💳 Confirm & Pay <span id="pay-button-amount">₹0</span>
+          </button>
+        </div>
+
+        <!-- Payment Success Screen -->
+        <div class="success-screen" id="success-screen">
+          <div class="success-checkmark">✓</div>
+          <div class="success-title">Payment Successful!</div>
+          <div class="success-sub">Your travel bookings and hotel stays are fully confirmed.</div>
+
+          <div class="receipt-box" id="receipt-box">
+            <!-- Dynamically populated -->
+          </div>
+
+          <button class="btn" style="border-color:#534AB7;color:#534AB7" onclick="goBackToItinerary()">
+            🗺️ Return to Itinerary Builder
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="empty-budget-area" class="empty-state">
+      <div style="font-size:40px;margin-bottom:10px">📊</div>
+      <div style="font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px">Select a trip to view budget</div>
+      <div style="font-size:13px;color:#888">Choose an active trip from the selector above to display budgets, city
+        costs, and proceed to payment checkout.</div>
+    </div>
+  </div>
+
+  <script>
+    /* ── Protected Route ── */
+    if (!localStorage.getItem("loggedInUser")) {
+      window.location.href = "1_login_signup.html";
+    }
+
+    /* ── Load user info ── */
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    if (userData.name) {
+      document.getElementById("user-name").textContent = userData.name;
+      document.getElementById("user-avatar").textContent = userData.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+    }
+
+    let selectedTripId = null;
+    let activePaymentTab = 'card';
+
+    /* ── Category config ── */
+    const categories = [
+      { key: "hotel", label: "Hotel & Stay", icon: "🏨", color: "#534AB7" },
+      { key: "transport", label: "Transport", icon: "🚗", color: "#2E86AB" },
+      { key: "activities", label: "Activities", icon: "🎯", color: "#F18F01" },
+      { key: "food", label: "Food & Dining", icon: "🍽️", color: "#0F6E56" }
+    ];
+
+    /* ── Format currency ── */
+    function fmt(n) {
+      return "₹" + n.toLocaleString("en-IN");
+    }
+
+    /* ── Populate trips selector ── */
+    function populateTrips() {
+      const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+      const select = document.getElementById("trip-select");
+      select.innerHTML = '<option value="">— Choose a trip —</option>';
+
+      trips.forEach(t => {
+        const opt = document.createElement("option");
+        opt.value = t.id;
+        opt.textContent = t.name + " (" + t.destination + ")";
+        select.appendChild(opt);
+      });
+
+      /* Auto-select from URL param or activeTrip */
+      const params = new URLSearchParams(window.location.search);
+      const tripParam = params.get("trip") || localStorage.getItem("activeTrip");
+      if (tripParam && trips.find(t => String(t.id) === String(tripParam))) {
+        select.value = tripParam;
+        loadSelectedTrip();
+      }
+    }
+
+    /* ── Get current trip object ── */
+    function getTrip() {
+      const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+      return trips.find(t => String(t.id) === String(selectedTripId));
+    }
+
+    /* ── Load selected trip ── */
+    function loadSelectedTrip() {
+      const select = document.getElementById("trip-select");
+      selectedTripId = select.value;
+
+      if (!selectedTripId) {
+        document.getElementById("active-budget-area").style.display = "none";
+        document.getElementById("empty-budget-area").style.display = "block";
+        localStorage.removeItem("activeTrip");
+        return;
+      }
+
+      localStorage.setItem("activeTrip", selectedTripId);
+      document.getElementById("active-budget-area").style.display = "block";
+      document.getElementById("empty-budget-area").style.display = "none";
+
+      // Hide payment details on reload/switching
+      document.getElementById("payment-interface").style.display = "none";
+      document.getElementById("checkout-standard-screen").style.display = "block";
+      document.getElementById("success-screen").style.display = "none";
+
+      renderBudget();
+    }
+
+    /* ── Render entire budget dashboard live ── */
+    function renderBudget() {
+      const trip = getTrip();
+      if (!trip) return;
+
+      // Calculate dynamic totals
+      let hotelTotal = 0, transportTotal = 0, foodTotal = 0, activitiesTotal = 0;
+      let grandTotal = 0;
+      const cityBudgets = {};
+
+      (trip.itinerary || []).forEach(city => {
+        let cityTotal = 0;
+        (city.expenses || []).forEach(exp => {
+          const cost = exp.cost || 0;
+          grandTotal += cost;
+          cityTotal += cost;
+
+          if (exp.category === 'hotel') hotelTotal += cost;
+          else if (exp.category === 'transport') transportTotal += cost;
+          else if (exp.category === 'food') foodTotal += cost;
+          else if (exp.category === 'activities') activitiesTotal += cost;
+        });
+        cityBudgets[city.city] = cityTotal;
+      });
+
+      // Save to localStorage specifically
+      localStorage.setItem("cityBudgets_" + trip.id, JSON.stringify(cityBudgets));
+      localStorage.setItem("totalBudget_" + trip.id, grandTotal);
+
+      // Sync status
+      const status = localStorage.getItem("paymentStatus_" + trip.id) || "Pending";
+      const statusBadge = document.getElementById("payment-status-badge");
+      const paymentSubLabel = document.getElementById("payment-sub-label");
+
+      if (status === 'Paid') {
+        statusBadge.textContent = "PAID";
+        statusBadge.className = "status-badge status-paid";
+        paymentSubLabel.textContent = "All bookings confirmed ✓";
+        document.getElementById("btn-proceed-pay").style.display = "none";
+        document.getElementById("checkout-panel").style.display = "none";
+      } else {
+        statusBadge.textContent = "PENDING PAYMENT";
+        statusBadge.className = "status-badge status-pending";
+        paymentSubLabel.textContent = "Awaiting checkout and confirmation";
+        document.getElementById("btn-proceed-pay").style.display = "block";
+        document.getElementById("checkout-panel").style.display = "block";
+      }
+
+      // Populate Overview
+      document.getElementById("total-budget").textContent = fmt(grandTotal);
+      document.getElementById("city-count").textContent = (trip.itinerary || []).length + " Cit" + ((trip.itinerary || []).length !== 1 ? "ies" : "y");
+
+      // Render City-wise Cards
+      const cityGrid = document.getElementById("city-wise-grid");
+      if ((trip.itinerary || []).length === 0) {
+        cityGrid.innerHTML = '<div style="grid-column:span 2;color:#888;font-size:12px;padding:8px">No cities added yet. Add cities in the Itinerary Builder first!</div>';
+      } else {
+        cityGrid.innerHTML = (trip.itinerary || []).map(city => {
+          const expenses = city.expenses || [];
+          const cityTotal = expenses.reduce((s, e) => s + (e.cost || 0), 0);
+          const expMap = {};
+          expenses.forEach(e => { expMap[e.category] = e.cost; });
+
+          return `
+          <div class="city-budget-card">
+            <div class="cbc-header">
+              <div class="cbc-name">📍 ${city.city}</div>
+              <div class="cbc-total">${fmt(cityTotal)}</div>
+            </div>
+            <div class="cbc-row"><span>🏨 Hotel & Stay</span><span>${fmt(expMap.hotel || 0)}</span></div>
+            <div class="cbc-row"><span>🚗 Local Transport</span><span>${fmt(expMap.transport || 0)}</span></div>
+            <div class="cbc-row"><span>🍽️ Food & Dining</span><span>${fmt(expMap.food || 0)}</span></div>
+            <div class="cbc-row"><span>🎯 Sights & Activities</span><span>${fmt(expMap.activities || 0)}</span></div>
+          </div>`;
+        }).join('');
+      }
+
+      // Render Global Category Distribution
+      const catData = { hotel: hotelTotal, transport: transportTotal, food: foodTotal, activities: activitiesTotal };
+      const catGrid = document.getElementById("category-grid");
+
+      catGrid.innerHTML = categories.map(cat => {
+        const amount = catData[cat.key] || 0;
+        const catPct = grandTotal > 0 ? Math.round((amount / grandTotal) * 100) : 0;
+        return `
+        <div class="cat-card">
+          <div class="cat-header">
+            <div class="cat-name">${cat.icon} ${cat.label}</div>
+            <div class="cat-amount">${fmt(amount)}</div>
+          </div>
+          <div class="cat-bar">
+            <div class="cat-fill" style="width:${catPct}%;background:${cat.color}"></div>
+          </div>
+          <div class="cat-sub">
+            <span>${catPct}% of grand total</span>
+            <span>Allocated</span>
+          </div>
+        </div>`;
+      }).join('');
+
+      // Render Checkout standard summary
+      const summaryBody = document.getElementById("summary-table-body");
+      const subtotal = grandTotal;
+      const taxes = Math.round(subtotal * 0.05); // 5% GST
+      const payableAmount = subtotal + taxes;
+
+      let itemsHTML = (trip.itinerary || []).map(city => {
+        const cTotal = (city.expenses || []).reduce((s, e) => s + (e.cost || 0), 0);
+        return `<tr><td>Package Booking – ${city.city} Stay</td><td style="text-align:right">${fmt(cTotal)}</td></tr>`;
+      }).join('');
+
+      itemsHTML += `
+      <tr><td>Subtotal Packages</td><td style="text-align:right;font-weight:600">${fmt(subtotal)}</td></tr>
+      <tr><td>Travel GST & Insurance (5%)</td><td style="text-align:right">${fmt(taxes)}</td></tr>
+      <tr><td>Convenience & Processing Fee</td><td style="text-align:right;color:#0F6E56;font-weight:600">FREE</td></tr>
+      <tr class="total-row"><td>Grand Total Booking Cost</td><td style="text-align:right">${fmt(payableAmount)}</td></tr>
+    `;
+      summaryBody.innerHTML = itemsHTML;
+
+      // Save pay amounts
+      document.getElementById("pay-button-amount").textContent = fmt(payableAmount);
+    }
+
+    /* ── Proceed to Payment reveal ── */
+    function proceedToPayment() {
+      document.getElementById("payment-interface").style.display = "block";
+      document.getElementById("btn-proceed-pay").style.display = "none";
+      document.getElementById("payment-interface").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    /* ── Switch Card / UPI payments ── */
+    function switchPaymentTab(type) {
+      activePaymentTab = type;
+      document.getElementById("tab-card").classList.toggle("active", type === 'card');
+      document.getElementById("tab-upi").classList.toggle("active", type === 'upi');
+      document.getElementById("pay-content-card").classList.toggle("active", type === 'card');
+      document.getElementById("pay-content-upi").classList.toggle("active", type === 'upi');
+    }
+
+    /* ── Card live mockup inputs listener ── */
+    function updateCardMockup() {
+      const num = document.getElementById("cc-num-input").value.trim();
+      const name = document.getElementById("cc-name-input").value.trim();
+      const exp = document.getElementById("cc-exp-input").value.trim();
+
+      document.getElementById("mock-number").textContent = num ? num : "•••• •••• •••• ••••";
+      document.getElementById("mock-name").textContent = name ? name.toUpperCase() : "ARJUN JOSHI";
+      document.getElementById("mock-expiry").textContent = exp ? exp : "12/28";
+    }
+
+    /* ── UPI Verification simulation ── */
+    function verifyUPI() {
+      const idInput = document.getElementById("upi-id-input").value.trim();
+      const msg = document.getElementById("upi-verification-msg");
+      if (!idInput) {
+        alert("Please enter a valid UPI ID");
+        return;
+      }
+      msg.style.display = "block";
+      msg.textContent = "Verifying UPI ID...";
+      msg.style.color = "#666";
+
+      setTimeout(() => {
+        if (idInput.includes("@")) {
+          msg.textContent = "✓ Verified account holder: Arjun Joshi";
+          msg.style.color = "#0F6E56";
+        } else {
+          msg.textContent = "✕ Invalid handle structure. Please include domain (e.g., @okaxis)";
+          msg.style.color = "#c0392b";
+        }
+      }, 1000);
+    }
+
+    /* ── Execute payment ── */
+    function executePayment() {
+      const trip = getTrip();
+      if (!trip) return;
+
+      // Validate inputs depending on tab
+      if (activePaymentTab === 'card') {
+        const num = document.getElementById("cc-num-input").value.trim();
+        const name = document.getElementById("cc-name-input").value.trim();
+        const exp = document.getElementById("cc-exp-input").value.trim();
+        const cvv = document.getElementById("cc-cvv-input").value.trim();
+
+        if (!num || !name || !exp || !cvv) {
+          alert("Please complete all credit card details.");
+          return;
+        }
+      } else {
+        const upi = document.getElementById("upi-id-input").value.trim();
+        if (!upi) {
+          alert("Please enter a UPI ID first.");
+          return;
+        }
+      }
+
+      const payBtn = document.getElementById("btn-pay-now");
+      payBtn.disabled = true;
+      payBtn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;margin-right:8px">⌛</span> Processing Secure payment...';
+
+      // Create inline keyframe animation if not existing
+      if (!document.getElementById("spin-style")) {
+        const style = document.createElement("style");
+        style.id = "spin-style";
+        style.innerHTML = "@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}";
+        document.head.appendChild(style);
+      }
+
+      setTimeout(() => {
+        // Set paid status in localStorage
+        localStorage.setItem("paymentStatus_" + selectedTripId, "Paid");
+
+        // Calculate final payable cost
+        let subtotal = 0;
+        (trip.itinerary || []).forEach(city => {
+          (city.expenses || []).forEach(exp => {
+            subtotal += exp.cost || 0;
+          });
+        });
+        const taxes = Math.round(subtotal * 0.05);
+        const payableAmount = subtotal + taxes;
+
+        // Hide panels
+        document.getElementById("checkout-standard-screen").style.display = "none";
+        document.getElementById("payment-interface").style.display = "none";
+
+        // Populate receipt
+        const receipt = document.getElementById("receipt-box");
+        const transactionId = "TXN" + Math.floor(100000000 + Math.random() * 900000000);
+
+        receipt.innerHTML = `
+        <div class="receipt-row"><span>Trip Name</span><span>${trip.name}</span></div>
+        <div class="receipt-row"><span>Transaction ID</span><span>${transactionId}</span></div>
+        <div class="receipt-row"><span>Date & Time</span><span>${new Date().toLocaleString("en-IN")}</span></div>
+        <div class="receipt-row"><span>Payment Method</span><span>${activePaymentTab === 'card' ? 'Visa •••• 4444' : 'UPI Instant Pay'}</span></div>
+        <hr style="border:none;border-top:0.5px solid #e0e0e0;margin:10px 0">
+        <div class="receipt-row"><span>Total Paid</span><span style="color:#0F6E56;font-weight:700">${fmt(payableAmount)}</span></div>
+      `;
+
+        // Show Success Screen
+        document.getElementById("success-screen").style.display = "block";
+
+        // Update Page status badges at top
+        renderBudget();
+      }, 1500);
+    }
+
+    /* ── Navigation helpers ── */
+    function goBackToItinerary() {
+      window.location.href = "5_itinerary_builder.html?trip=" + selectedTripId;
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("open");
+      document.getElementById("overlay").classList.toggle("show");
+    }
+
+    /* ── Init ── */
+    populateTrips();
+  </script>
+</body>
+
+</html>

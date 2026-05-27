@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveloop – Share Trip</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f4f0;display:flex;min-height:100vh}
+
+  /* ── Sidebar ── */
+  .sidebar{width:220px;background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100}
+  .logo{padding:20px 16px 16px;border-bottom:0.5px solid #e0e0e0}
+  .logo-text{font-size:17px;font-weight:600;color:#1a1a1a}
+  .logo-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .nav{padding:12px 8px;flex:1}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#666;text-decoration:none;margin-bottom:2px;transition:background 0.15s;font-weight:500}
+  .nav a:hover{background:#f5f4f0;color:#1a1a1a}
+  .nav a.active{background:#EEEDFE;color:#534AB7}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .user-area{padding:12px;border-top:0.5px solid #e0e0e0}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f5f4f0;cursor:pointer;transition:background 0.15s;text-decoration:none}
+  .user-pill:hover{background:#EEEDFE}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#CECBF6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3489;flex-shrink:0}
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:#fff;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:18px}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90}
+
+  /* ── Main ── */
+  .main{margin-left:220px;flex:1;padding:28px;overflow-y:auto}
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+  .page-title{font-size:20px;font-weight:600;color:#1a1a1a}
+  .page-sub{font-size:13px;color:#888;margin-top:4px}
+
+  /* ── Trip selector ── */
+  .trip-selector{margin-bottom:24px}
+  .trip-selector select{width:100%;max-width:360px;padding:10px 12px;border:0.5px solid #d0d0d0;border-radius:8px;font-size:14px;color:#1a1a1a;background:#fff;outline:none;font-family:inherit}
+  .trip-selector select:focus{border-color:#534AB7}
+
+  /* ── Share link card ── */
+  .share-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:24px;margin-bottom:24px}
+  .share-title{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+  .share-desc{font-size:13px;color:#888;margin-bottom:16px}
+  .link-box{display:flex;gap:10px;margin-bottom:16px}
+  .link-input{flex:1;padding:10px 12px;border:0.5px solid #d0d0d0;border-radius:8px;font-size:13px;color:#534AB7;background:#FAFAF8;outline:none;font-family:monospace}
+  .btn{padding:9px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid #d0d0d0;background:#fff;color:#666;transition:all .15s}
+  .btn:hover{background:#f5f4f0}
+  .btn-primary{background:#534AB7;color:#fff;border-color:#534AB7}
+  .btn-primary:hover{background:#3C3489}
+  .btn-copy{background:#EEEDFE;color:#534AB7;border-color:#CECBF6}
+  .btn-copy:hover{background:#534AB7;color:#fff}
+  .btn-copy.copied{background:#E1F5EE;color:#085041;border-color:#9FE1CB}
+  .share-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .share-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid #d0d0d0;background:#fff;color:#666;transition:all .15s}
+  .share-btn:hover{border-color:#534AB7;color:#534AB7}
+
+  /* ── Preview card ── */
+  .preview-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:24px;margin-bottom:20px}
+  .preview-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+  .preview-title{font-size:16px;font-weight:600;color:#1a1a1a}
+  .preview-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;background:#EEEDFE;color:#534AB7}
+  .preview-meta{font-size:12px;color:#888;margin-bottom:16px;display:flex;gap:16px;flex-wrap:wrap}
+  .preview-meta span{display:flex;align-items:center;gap:4px}
+
+  /* ── Readonly timeline ── */
+  .preview-timeline{position:relative;padding-left:24px}
+  .preview-timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:#EEEDFE}
+  .preview-city{position:relative;margin-bottom:20px}
+  .preview-dot{position:absolute;left:-24px;top:3px;width:18px;height:18px;border-radius:50%;background:#534AB7;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:600;z-index:1}
+  .preview-city-name{font-size:14px;font-weight:600;color:#1a1a1a;margin-bottom:8px}
+  .preview-activities{list-style:none}
+  .preview-activities li{font-size:13px;color:#666;padding:4px 0;padding-left:12px;position:relative}
+  .preview-activities li::before{content:'';position:absolute;left:0;top:10px;width:5px;height:5px;border-radius:50%;background:#CECBF6}
+
+  /* ── Empty state ── */
+  .empty-state{text-align:center;padding:48px 20px;background:#fff;border:0.5px solid #e0e0e0;border-radius:14px}
+  .empty-state .icon{font-size:40px;margin-bottom:10px}
+  .empty-state .title{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px}
+  .empty-state .sub{font-size:13px;color:#888}
+
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .hamburger{display:block}
+    .overlay.show{display:block}
+    .main{margin-left:0;padding:20px;padding-top:56px}
+    .link-box{flex-direction:column}
+    .share-actions{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-text">✈ Traveloop</div>
+    <div class="logo-sub">Travel planning made easy</div>
+  </div>
+  <nav class="nav">
+    <a href="2_dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="4_my_trips.html"><span class="nav-icon">🗺️</span> My trips</a>
+    <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+    <a href="5_itinerary_builder.html"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+    <a href="6_budget.html"><span class="nav-icon">📊</span> Budget</a>
+    <a href="7_share_trip.html" class="active"><span class="nav-icon">🔗</span> Share trip</a>
+  </nav>
+  <div class="user-area">
+    <a href="8_profile.html" class="user-pill" id="user-pill">
+      <div class="avatar" id="user-avatar">AJ</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="user-name">Arjun Joshi</div>
+        <div style="font-size:11px;color:#aaa">Free plan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Share Trip 🔗</div>
+      <div class="page-sub">Share your travel plans with friends and family</div>
+    </div>
+  </div>
+
+  <!-- Trip selector -->
+  <div class="trip-selector">
+    <label style="display:block;font-size:12px;color:#666;margin-bottom:6px;font-weight:500">Select a trip to share</label>
+    <select id="trip-select" onchange="loadShareTrip()">
+      <option value="">— Choose a trip —</option>
+    </select>
+  </div>
+
+  <!-- Share link card (hidden by default) -->
+  <div class="share-card" id="share-card" style="display:none">
+    <div class="share-title">🔗 Shareable Link</div>
+    <div class="share-desc">Anyone with this link can view the read-only itinerary</div>
+    <div class="link-box">
+      <input type="text" class="link-input" id="share-link" readonly>
+      <button class="btn btn-copy" id="copy-btn" onclick="copyLink()">📋 Copy</button>
+    </div>
+    <div class="share-actions">
+      <button class="share-btn" onclick="shareWhatsApp()">💬 WhatsApp</button>
+      <button class="share-btn" onclick="shareEmail()">✉️ Email</button>
+      <button class="share-btn" onclick="shareTelegram()">📨 Telegram</button>
+    </div>
+  </div>
+
+  <!-- Readonly preview -->
+  <div id="preview-container"></div>
+</div>
+
+<script>
+  /* ── Protected Route ── */
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Load user info ── */
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  if (userData.name) {
+    document.getElementById("user-name").textContent = userData.name;
+    document.getElementById("user-avatar").textContent = userData.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  }
+
+  /* ── Format date helper ── */
+  function fmtDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  /* ── Populate trips dropdown ── */
+  function populateTrips() {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const select = document.getElementById("trip-select");
+    select.innerHTML = '<option value="">— Choose a trip —</option>';
+    trips.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.id;
+      opt.textContent = t.name;
+      select.appendChild(opt);
+    });
+  }
+
+  /* ── Load trip for sharing ── */
+  function loadShareTrip() {
+    const tripId = document.getElementById("trip-select").value;
+    const shareCard = document.getElementById("share-card");
+    const container = document.getElementById("preview-container");
+
+    if (!tripId) {
+      shareCard.style.display = "none";
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">🔗</div>
+          <div class="title">Select a trip to share</div>
+          <div class="sub">Choose from the dropdown above</div>
+        </div>`;
+      return;
+    }
+
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const trip = trips.find(t => String(t.id) === String(tripId));
+    if (!trip) return;
+
+    /* Generate shareable link */
+    const shareUrl = window.location.origin + window.location.pathname.replace("7_share_trip.html", "5_itinerary_builder.html") + "?trip=" + trip.id + "&view=readonly";
+    document.getElementById("share-link").value = shareUrl;
+    shareCard.style.display = "block";
+
+    /* Render preview */
+    const days = Math.round((new Date(trip.end) - new Date(trip.start)) / 86400000);
+    const itinerary = trip.itinerary || [];
+    const cityEmojis = { "Paris":"🗼","Rome":"🏛️","Barcelona":"🌉","Amsterdam":"🌷","Goa":"🏖️","Panjim":"⛪","Tokyo":"🗼","Kyoto":"🏯","Osaka":"🏰" };
+
+    container.innerHTML = `
+      <div class="preview-card">
+        <div class="preview-header">
+          <div class="preview-title">${trip.name}</div>
+          <div class="preview-badge">Read-only preview</div>
+        </div>
+        ${trip.desc ? `<div style="font-size:13px;color:#666;margin-bottom:14px">${trip.desc}</div>` : ''}
+        <div class="preview-meta">
+          <span>📅 ${fmtDate(trip.start)} → ${fmtDate(trip.end)}</span>
+          <span>⏱️ ${days} days</span>
+          <span>🏙️ ${(trip.cities || []).length} cities</span>
+          <span>💰 ₹${(trip.budget || 0).toLocaleString("en-IN")}</span>
+        </div>
+        ${itinerary.length > 0 ? `
+          <div style="font-size:11px;font-weight:600;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:14px">Itinerary</div>
+          <div class="preview-timeline">
+            ${itinerary.map((city, idx) => `
+              <div class="preview-city">
+                <div class="preview-dot">${idx + 1}</div>
+                <div class="preview-city-name">${cityEmojis[city.city] || '📍'} ${city.city}</div>
+                <ul class="preview-activities">
+                  ${(city.activities || []).map(a => `<li>${a}</li>`).join('')}
+                  ${(!city.activities || city.activities.length === 0) ? '<li style="color:#ccc">No activities planned yet</li>' : ''}
+                </ul>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<div style="font-size:13px;color:#aaa;text-align:center;padding:20px">No itinerary built yet</div>'}
+      </div>`;
+  }
+
+  /* ── Copy link ── */
+  function copyLink() {
+    const link = document.getElementById("share-link");
+    link.select();
+    document.execCommand("copy");
+    const btn = document.getElementById("copy-btn");
+    btn.textContent = "✓ Copied!";
+    btn.classList.add("copied");
+    setTimeout(() => {
+      btn.textContent = "📋 Copy";
+      btn.classList.remove("copied");
+    }, 2000);
+  }
+
+  /* ── Share buttons ── */
+  function shareWhatsApp() {
+    const link = document.getElementById("share-link").value;
+    window.open("https://wa.me/?text=" + encodeURIComponent("Check out my travel itinerary! 🌍✈️ " + link), "_blank");
+  }
+  function shareEmail() {
+    const link = document.getElementById("share-link").value;
+    window.open("mailto:?subject=My Travel Itinerary&body=" + encodeURIComponent("Hey! Check out my travel plan: " + link), "_blank");
+  }
+  function shareTelegram() {
+    const link = document.getElementById("share-link").value;
+    window.open("https://t.me/share/url?url=" + encodeURIComponent(link) + "&text=" + encodeURIComponent("Check out my travel itinerary! 🌍"), "_blank");
+  }
+
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  }
+
+  /* ── Init ── */
+  populateTrips();
+  loadShareTrip();
+</script>
+</body>
+</html>

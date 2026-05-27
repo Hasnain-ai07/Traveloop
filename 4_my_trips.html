@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traveloop – My Trips</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,sans-serif;background:#f5f4f0;display:flex;min-height:100vh}
+
+  /* ── Sidebar ── */
+  .sidebar{width:220px;background:#fff;border-right:0.5px solid #e0e0e0;display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100}
+  .logo{padding:20px 16px 16px;border-bottom:0.5px solid #e0e0e0}
+  .logo-text{font-size:17px;font-weight:600;color:#1a1a1a}
+  .logo-sub{font-size:11px;color:#aaa;margin-top:2px}
+  .nav{padding:12px 8px;flex:1}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:#666;text-decoration:none;margin-bottom:2px;transition:background 0.15s;font-weight:500}
+  .nav a:hover{background:#f5f4f0;color:#1a1a1a}
+  .nav a.active{background:#EEEDFE;color:#534AB7}
+  .nav-icon{font-size:15px;width:18px;text-align:center}
+  .user-area{padding:12px;border-top:0.5px solid #e0e0e0}
+  .user-pill{display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;background:#f5f4f0;cursor:pointer;transition:background 0.15s;text-decoration:none}
+  .user-pill:hover{background:#EEEDFE}
+  .avatar{width:30px;height:30px;border-radius:50%;background:#CECBF6;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#3C3489;flex-shrink:0}
+  .hamburger{display:none;position:fixed;top:14px;left:14px;z-index:200;background:#fff;border:0.5px solid #e0e0e0;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:18px}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:90}
+
+  /* ── Main ── */
+  .main{margin-left:220px;flex:1;padding:28px;overflow-y:auto}
+  .page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;flex-wrap:wrap;gap:12px}
+  .page-title{font-size:20px;font-weight:600;color:#1a1a1a}
+  .page-sub{font-size:13px;color:#888;margin-top:4px}
+  .btn-primary{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;background:#534AB7;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;transition:background 0.15s}
+  .btn-primary:hover{background:#3C3489}
+
+  /* ── Filter tabs ── */
+  .filter-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+  .filter-tab{padding:7px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid #d0d0d0;background:#fff;color:#666;transition:all 0.15s}
+  .filter-tab:hover{border-color:#534AB7;color:#534AB7}
+  .filter-tab.active{background:#534AB7;color:#fff;border-color:#534AB7}
+
+  /* ── Trip cards ── */
+  .trips-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .trip-card{background:#fff;border:0.5px solid #e0e0e0;border-radius:14px;padding:20px;cursor:pointer;transition:all 0.2s;text-decoration:none;display:block;position:relative;overflow:hidden}
+  .trip-card:hover{border-color:#534AB7;box-shadow:0 4px 16px rgba(83,74,183,.08)}
+  .trip-card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+  .trip-name{font-size:15px;font-weight:600;color:#1a1a1a}
+  .trip-desc{font-size:12px;color:#888;margin-bottom:10px;line-height:1.5}
+  .badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+  .badge-upcoming{background:#EEEDFE;color:#534AB7}
+  .badge-past{background:#FAEEDA;color:#854F0B}
+  .badge-draft{background:#f5f4f0;color:#666}
+  .trip-dates{font-size:12px;color:#aaa;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .trip-dates span{color:#1a1a1a;font-weight:500}
+  .city-chips{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px}
+  .chip{font-size:11px;padding:3px 9px;background:#f5f4f0;border-radius:20px;color:#666}
+  .trip-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:0.5px solid #f0f0f0}
+  .trip-budget{font-size:12px;color:#888}
+  .trip-budget strong{color:#1a1a1a}
+  .trip-action{font-size:12px;color:#534AB7;font-weight:500;display:flex;align-items:center;gap:4px}
+
+  /* ── Empty state ── */
+  .empty-state{text-align:center;padding:60px 20px}
+  .empty-icon{font-size:48px;margin-bottom:12px}
+  .empty-title{font-size:16px;font-weight:600;color:#1a1a1a;margin-bottom:6px}
+  .empty-sub{font-size:13px;color:#888;margin-bottom:20px}
+
+  /* ── Stats bar ── */
+  .stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .stat-item{background:#fff;border:0.5px solid #e0e0e0;border-radius:10px;padding:14px;text-align:center}
+  .stat-value{font-size:20px;font-weight:600;color:#1a1a1a}
+  .stat-label{font-size:11px;color:#888;margin-top:3px}
+
+  @media(max-width:768px){
+    .sidebar{transform:translateX(-100%);transition:transform .25s}
+    .sidebar.open{transform:translateX(0)}
+    .hamburger{display:block}
+    .overlay.show{display:block}
+    .main{margin-left:0;padding:20px;padding-top:56px}
+    .trips-grid{grid-template-columns:1fr}
+    .stats-bar{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<button class="hamburger" onclick="toggleSidebar()">☰</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div class="sidebar" id="sidebar">
+  <div class="logo">
+    <div class="logo-text">✈ Traveloop</div>
+    <div class="logo-sub">Travel planning made easy</div>
+  </div>
+  <nav class="nav">
+    <a href="2_dashboard.html"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="4_my_trips.html" class="active"><span class="nav-icon">🗺️</span> My trips</a>
+    <a href="3_create_trip.html"><span class="nav-icon">➕</span> Create trip</a>
+    <a href="5_itinerary_builder.html"><span class="nav-icon">🏙️</span> Itinerary builder</a>
+    <a href="6_budget.html"><span class="nav-icon">📊</span> Budget</a>
+    <a href="7_share_trip.html"><span class="nav-icon">🔗</span> Share trip</a>
+  </nav>
+  <div class="user-area">
+    <a href="8_profile.html" class="user-pill" id="user-pill">
+      <div class="avatar" id="user-avatar">AJ</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:#1a1a1a" id="user-name">Arjun Joshi</div>
+        <div style="font-size:11px;color:#aaa">Free plan</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="page-header">
+    <div>
+      <div class="page-title">My Trips 🗺️</div>
+      <div class="page-sub">Manage and view all your travel plans</div>
+    </div>
+    <a href="3_create_trip.html" class="btn-primary">+ New trip</a>
+  </div>
+
+  <!-- Stats bar -->
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat-item"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total trips</div></div>
+    <div class="stat-item"><div class="stat-value" id="stat-upcoming">0</div><div class="stat-label">Upcoming</div></div>
+    <div class="stat-item"><div class="stat-value" id="stat-past">0</div><div class="stat-label">Completed</div></div>
+    <div class="stat-item"><div class="stat-value" id="stat-cities">0</div><div class="stat-label">Cities</div></div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs">
+    <button class="filter-tab active" onclick="filterTrips('all', this)">All trips</button>
+    <button class="filter-tab" onclick="filterTrips('upcoming', this)">Upcoming</button>
+    <button class="filter-tab" onclick="filterTrips('past', this)">Past</button>
+    <button class="filter-tab" onclick="filterTrips('draft', this)">Drafts</button>
+  </div>
+
+  <!-- Trips grid -->
+  <div class="trips-grid" id="trips-grid">
+    <!-- Dynamically populated -->
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" id="empty-state" style="display:none">
+    <div class="empty-icon">✈️</div>
+    <div class="empty-title">No trips yet</div>
+    <div class="empty-sub">Start planning your next adventure!</div>
+    <a href="3_create_trip.html" class="btn-primary">+ Create your first trip</a>
+  </div>
+</div>
+
+<script>
+  /* ── Protected Route ── */
+  if (!localStorage.getItem("loggedInUser")) {
+    window.location.href = "1_login_signup.html";
+  }
+
+  /* ── Load user info ── */
+  const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+  if (userData.name) {
+    document.getElementById("user-name").textContent = userData.name;
+    document.getElementById("user-avatar").textContent = userData.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  }
+
+  /* ── Format date helper ── */
+  function fmtDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function getDays(start, end) {
+    return Math.round((new Date(end) - new Date(start)) / 86400000);
+  }
+
+  /* ── Render trips from localStorage ── */
+  let currentFilter = "all";
+
+  function renderTrips(filter) {
+    const trips = JSON.parse(localStorage.getItem("trips") || "[]");
+    const grid = document.getElementById("trips-grid");
+    const empty = document.getElementById("empty-state");
+
+    /* Filter */
+    const filtered = filter === "all" ? trips : trips.filter(t => t.status === filter);
+
+    /* Stats */
+    document.getElementById("stat-total").textContent = trips.length;
+    document.getElementById("stat-upcoming").textContent = trips.filter(t => t.status === "upcoming").length;
+    document.getElementById("stat-past").textContent = trips.filter(t => t.status === "past").length;
+    const allCities = trips.reduce((acc, t) => acc + (t.cities ? t.cities.length : 0), 0);
+    document.getElementById("stat-cities").textContent = allCities;
+
+    if (filtered.length === 0) {
+      grid.style.display = "none";
+      empty.style.display = "block";
+      return;
+    }
+
+    grid.style.display = "grid";
+    empty.style.display = "none";
+    grid.innerHTML = "";
+
+    filtered.forEach(trip => {
+      const days = getDays(trip.start, trip.end);
+      const badgeClass = trip.status === "upcoming" ? "badge-upcoming" : trip.status === "past" ? "badge-past" : "badge-draft";
+      const badgeText = trip.status.charAt(0).toUpperCase() + trip.status.slice(1);
+
+      const card = document.createElement("a");
+      card.href = "5_itinerary_builder.html?trip=" + trip.id;
+      card.className = "trip-card";
+      card.innerHTML = `
+        <div class="trip-card-header">
+          <div class="trip-name">${trip.name}</div>
+          <span class="badge ${badgeClass}">${badgeText}</span>
+        </div>
+        ${trip.desc ? `<div class="trip-desc">${trip.desc}</div>` : ''}
+        <div class="trip-dates">
+          📅 <span>${fmtDate(trip.start)}</span> → <span>${fmtDate(trip.end)}</span> · ${days} days
+        </div>
+        <div class="city-chips">
+          ${(trip.cities || []).map(c => `<span class="chip">${c}</span>`).join('')}
+        </div>
+        <div class="trip-footer">
+          <div class="trip-budget">Budget: <strong>₹${(trip.budget || 0).toLocaleString("en-IN")}</strong></div>
+          <div class="trip-action">Open itinerary →</div>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+
+  function filterTrips(filter, el) {
+    currentFilter = filter;
+    document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+    renderTrips(filter);
+  }
+
+  /* ── Mobile sidebar ── */
+  function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("overlay").classList.toggle("show");
+  }
+
+  /* ── Initial render ── */
+  renderTrips("all");
+</script>
+</body>
+</html>
