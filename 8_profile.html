@@ -155,7 +155,7 @@
     </div>
     <div class="form-group">
       <label>Email address</label>
-      <input type="text" id="inp-email" readonly>
+      <input type="email" id="inp-email">
     </div>
     <div class="form-group">
       <label>Phone number (optional)</label>
@@ -186,11 +186,11 @@
   }
 
   /* ── Load user data ── */
-  const email = localStorage.getItem("loggedInUser") || "";
-  const userData = JSON.parse(localStorage.getItem("userData") || '{}');
-  const fullName = userData.name || "Traveler";
-  const nameParts = fullName.split(" ");
-  const initials = nameParts.map(w => w[0]).join("").toUpperCase().slice(0, 2);
+  let email = localStorage.getItem("loggedInUser") || "";
+  let userData = JSON.parse(localStorage.getItem("userData") || '{}');
+  let fullName = userData.name || "Traveler";
+  let nameParts = fullName.split(" ");
+  let initials = nameParts.map(w => w[0]).join("").toUpperCase().slice(0, 2);
 
   /* ── Populate profile display ── */
   document.getElementById("profile-avatar").textContent = initials;
@@ -218,17 +218,30 @@
   function saveProfile() {
     const fname = document.getElementById("inp-fname").value.trim();
     const lname = document.getElementById("inp-lname").value.trim();
+    const newEmail = document.getElementById("inp-email").value.trim();
     const phone = document.getElementById("inp-phone").value.trim();
+
     if (!fname) { alert("First name is required"); return; }
+    if (!newEmail || !/\S+@\S+\.\S+/.test(newEmail)) { alert("Please enter a valid email address"); return; }
 
     const newName = fname + (lname ? " " + lname : "");
-    const updated = { name: newName, email: email, phone: phone };
+    const updated = { name: newName, email: newEmail, phone: phone };
+
+    // Update localStorage
+    localStorage.setItem("loggedInUser", newEmail);
     localStorage.setItem("userData", JSON.stringify(updated));
+
+    // Update local variables
+    email = newEmail;
+    userData = updated;
+    fullName = newName;
+    nameParts = fullName.split(" ");
 
     /* Update display */
     const newInitials = newName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
     document.getElementById("profile-avatar").textContent = newInitials;
     document.getElementById("profile-name").textContent = newName;
+    document.getElementById("profile-email").textContent = newEmail;
     document.getElementById("sidebar-avatar").textContent = newInitials;
     document.getElementById("sidebar-name").textContent = newName;
 
@@ -240,6 +253,7 @@
   function cancelEdit() {
     document.getElementById("inp-fname").value = nameParts[0] || "";
     document.getElementById("inp-lname").value = nameParts.slice(1).join(" ") || "";
+    document.getElementById("inp-email").value = email;
     document.getElementById("inp-phone").value = userData.phone || "";
   }
 
